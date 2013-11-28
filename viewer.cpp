@@ -4,8 +4,9 @@
 
 using namespace std;
 
-Viewer::Viewer() : m_massViewer() {
+Viewer::Viewer() : m_massViewer(this->camera())  {
     connect(&m_massViewer, &Mass_spring_viewer::newInfo, this, &Viewer::handleNewInfo);
+    show_axis = false;
 }
 
 // Draws a spiral
@@ -58,13 +59,19 @@ void Viewer::init()
 {
   // Restore previous viewer state.
   restoreStateFromFile();
+  setAxisIsDrawn(false);
 
   //init mouse
   setMouseBinding(Qt::RightButton, CAMERA, ROTATE);
   setMouseBinding(Qt::LeftButton, SELECT);
 
-  m_time_step = 0.01;
+  m_time_step = 0.0003125;//0.01;
   startAnimation();
+
+  //init camera
+  camera()->setPosition(qglviewer::Vec(0.0f, 2.0f, 3.0f));
+  camera()->setUpVector(qglviewer::Vec(0.0f, 1.0f, 0.0f));
+  camera()->lookAt(qglviewer::Vec(0.0f, 0.0f, 0.0f));
 
   setMouseTracking(true);
 
@@ -127,6 +134,21 @@ void Viewer::keyPressEvent(QKeyEvent *e)
                 if (!animationIsStarted()) {
                     animate();
                 }
+                break;
+            }
+            // show axis
+            case Qt::Key_P:
+            {
+
+                show_axis = !show_axis;
+                if(show_axis) {
+                    setAxisIsDrawn(true);
+                    handleNewInfo("Show axis");
+                } else {
+                    setAxisIsDrawn(false);
+                    handleNewInfo("Hide axis");
+                }
+
                 break;
             }
             // parent's job

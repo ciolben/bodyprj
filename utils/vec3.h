@@ -36,6 +36,7 @@ public:
     float* data() { float* res = new float[3]; res[0] = x; res[1] = y; res[2] = z; return res; }
 
     float operator[] (unsigned int i) const { return (i == 0) ? x : (i == 1) ? y : z; }
+    float& operator[] (unsigned int i) { return (i == 0) ? x : (i == 1) ? y : z; }
 
     };
 

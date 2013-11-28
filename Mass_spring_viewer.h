@@ -22,6 +22,7 @@
 
 #include <QKeyEvent>
 #include <QObject>
+#include <QGLViewer/qglviewer.h>
 
 //== CLASS DEFINITION =========================================================
 
@@ -34,7 +35,7 @@ class Mass_spring_viewer : public QObject
     Q_OBJECT
 public:
     /// constructor
-    Mass_spring_viewer();
+    Mass_spring_viewer(const qglviewer::Camera *camera);
     /// draw scene
     virtual void draw();
     /// handle keyboard events
@@ -69,6 +70,8 @@ private :
 
     //selected particule (-1 : no selection)
     int selected_;
+
+    const qglviewer::Camera* camera;
 
 private: // GUI function
 
@@ -118,6 +121,8 @@ private: // parameter settings
 
     /// parameter: visualize particle forces?
     bool show_forces_;
+
+    bool camera_gravitation;
 
 private: // simulation data
     /// the mass spring system to be simulated

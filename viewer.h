@@ -14,6 +14,9 @@ private :
     /// value of time-step
     float m_time_step;
 
+    // show axis
+    bool show_axis;
+
     vec2 pick(int x, int y);
 
 protected :

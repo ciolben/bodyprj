@@ -1,26 +1,26 @@
 #include "Cloth.h"
 
-Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_z_position, Mass_spring_system *body_)
+Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system *body_)
     :body_(body_)
-    , cloth_particle_mass(0.0001f)
+    , cloth_particle_mass(0.001f)
 {
-    double minX = -1.0;
-    double minY = -1.0;
-    double maxX = 1.0;
-    double maxY = 1.0;
+    double minX = -0.5;
+    double minZ = -0.5;
+    double maxX = 0.5;
+    double maxZ = 0.5;
 
     double rangeX = maxX - minX;
-    double rangeY = maxY - minY;
+    double rangeZ = maxZ - minZ;
 
     double stepX = rangeX / grid_width;
-    double stepY = rangeY / grid_height;
+    double stepZ = rangeZ / grid_height;
 
     body_->clear();
     // add the particles
-    for(double y(minY); y < maxY; y = y + stepY) {
+    for(double z(minZ); z < maxZ; z = z + stepZ) {
         for(double x(minX); x < maxX; x = x + stepX) {
-            body_->add_particle( vec3(x, y, cloth_z_position),
-                                vec3(), cloth_particle_mass, true );
+            body_->add_particle( vec3(x, cloth_y_position, z),
+                                vec3(), cloth_particle_mass, false );
 
         }
     }

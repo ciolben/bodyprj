@@ -22,11 +22,12 @@
 //== IMPLEMENTATION ==========================================================
 
 
-Mass_spring_viewer::Mass_spring_viewer()
+Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
+    : camera(camera)
 {
-    integration_         = Euler;
-    collisions_          = Force_based;
-    external_force_      = None;
+    integration_         = Verlet;
+    collisions_          = Impulse_based;
+    external_force_      = Gravitation;
     animate_             = false;
     area_forces_         = true;
     show_forces_         = false;
@@ -45,6 +46,8 @@ Mass_spring_viewer::Mass_spring_viewer()
     animate_     = true;
 
     selected_ = -1;
+
+    camera_gravitation = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -164,7 +167,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             break;
         }
         case Qt::Key_6: {
-            Cloth cloth(10, 10, 2.0, &body_);
+            Cloth cloth(10, 10, 0.7, &body_);
             break;
         }
         // switch between time integration methods
@@ -222,6 +225,14 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             show_forces_ = !show_forces_;
             show_forces_ ? printInfo("Show forces ON") : printInfo("Show forces OFF") ;
             //glutPostRedisplay();
+            break;
+        }
+
+        // gravitation based on camera position
+        case Qt::Key_M:
+        {
+            camera_gravitation = !camera_gravitation;
+            camera_gravitation ? printInfo("camera gravitation ON") : printInfo("camera gravitation OFF") ;
             break;
         }
 
@@ -294,15 +305,41 @@ void Mass_spring_viewer::draw()
 
     // draw walls
     glDisable(GL_LIGHTING);
-    glLineWidth(1.0);
-    glColor3f(0.5,0.5,0.5);
-    glBegin(GL_LINE_STRIP);
-    glVertex2f( -1.0,  1.0 );
-    glVertex2f( -1.0, -1.0 );
-    glVertex2f(  1.0, -1.0 );
-    glVertex2f(  1.0,  1.0 );
-    glVertex2f( -1.0,  1.0 );
-    glEnd();
+        glLineWidth(1.0);
+        glColor3f(0.5,0.5,0.5);
+
+        glBegin(GL_LINE_STRIP);
+        glVertex3f(-1.0, 1.0,  -1.0 );
+        glVertex3f(-1.0, 1.0,  1.0 );
+        glVertex3f(1.0, 1.0,  1.0 );
+        glVertex3f(1.0, 1.0,  -1.0 );
+        glVertex3f(-1.0, 1.0,  -1.0 );
+        glEnd();
+
+        glBegin(GL_LINE_STRIP);
+        glVertex3f(-1.0, -1.0,  -1.0 );
+        glVertex3f(-1.0, -1.0,  1.0 );
+        glVertex3f(1.0, -1.0,  1.0 );
+        glVertex3f(1.0, -1.0,  -1.0 );
+        glVertex3f(-1.0, -1.0,  -1.0 );
+        glEnd();
+
+        glBegin(GL_LINES);
+        glVertex3f(-1.0, 1.0,  -1.0 );
+        glVertex3f(-1.0, -1.0,  -1.0 );
+
+        glVertex3f(-1.0, 1.0,  1.0 );
+        glVertex3f(-1.0, -1.0,  1.0 );
+
+        glVertex3f(1.0, 1.0,  1.0 );
+        glVertex3f(1.0, -1.0,  1.0 );
+
+        glVertex3f(1.0, 1.0,  -1.0 );
+        glVertex3f(1.0, -1.0,  -1.0 );
+
+        glVertex3f(-1.0, 1.0,  -1.0 );
+        glVertex3f(-1.0, -1.0,  -1.0 );
+        glEnd();
 
 
     // draw mouse spring
@@ -530,8 +567,19 @@ Mass_spring_viewer::compute_forces()
      */
     if (external_force_ == Gravitation)
     {
+        vec3 gravitation_vector(0.0, -9.81, 0.0);
+
+        if (camera_gravitation) {
+            float result[3];
+            camera->getWorldCoordinatesOf(gravitation_vector.data(), result);
+
+            gravitation_vector[0] = result[0];
+            gravitation_vector[1] = result[1];
+            gravitation_vector[2] = result[2];
+        }
+
         for (unsigned int i=0; i<body_.particles.size(); ++i)
-            body_.particles[i].force += vec3(0.0, -9.81) * particle_mass_;
+            body_.particles[i].force += gravitation_vector * particle_mass_;
     }
 
 
@@ -541,22 +589,24 @@ Mass_spring_viewer::compute_forces()
     // collision forces
     if (collisions_ == Force_based)
     {
-        float planes[4][3] = {
-            {  0.0,  1.0, 1.0 },
-            {  0.0, -1.0, 1.0 },
-            {  1.0,  0.0, 1.0 },
-            { -1.0,  0.0, 1.0 }
+        float planes[6][4] = {
+            {  0.0,  1.0, 0.0, 1.0 },
+            {  0.0, -1.0, 0.0, 1.0 },
+            {  1.0,  0.0, 0.0, 1.0 },
+            { -1.0,  0.0, 0.0, 1.0 },
+            {  0.0, 0.0, 1.0, 1.0 },
+            {  0.0, 0.0, -1.0, 1.0 }
         };
 
         for (unsigned int i=0; i<body_.particles.size(); ++i)
         {
             const vec3& pos = body_.particles[i].position;
-            for (unsigned int p=0; p<4; ++p)
+            for (unsigned int p=0; p<6; ++p)
             {
-                float dist = pos[0]*planes[p][0] + pos[1]*planes[p][1] + planes[p][2];
+                float dist = pos[0]*planes[p][0] + pos[1]*planes[p][1] + pos[2] * planes[p][2] + planes[p][3];
                 dist -= particle_radius_; // account for particle radius
                 if (dist < 0.0)
-                    body_.particles[i].force += collision_stiffness_ * fabs(dist) * vec3(planes[p][0], planes[p][1], 0);
+                    body_.particles[i].force += collision_stiffness_ * fabs(dist) * vec3(planes[p][0], planes[p][1], planes[p][2]);
             }
         }
     }
@@ -646,14 +696,18 @@ Mass_spring_viewer::compute_forces()
 
 void Mass_spring_viewer::impulse_based_collisions()
 {
+    //http://mathworld.wolfram.com/HessianNormalForm.html
+
     /** \todo (Part 2) Handle collisions based on impulses
      */
     // planes for which we compute collisions
-    float planes[4][3] = {
-        {  0.0,  1.0, 1.0 },
-        {  0.0, -1.0, 1.0 },
-        {  1.0,  0.0, 1.0 },
-        { -1.0,  0.0, 1.0 }
+    float planes[6][4] = {
+        {  0.0,  1.0, 0.0, 1.0 },
+        {  0.0, -1.0, 0.0, 1.0 },
+        {  1.0,  0.0, 0.0, 1.0 },
+        { -1.0,  0.0, 0.0, 1.0 },
+        {  0.0, 0.0, 1.0, 1.0 },
+        {  0.0, 0.0, -1.0, 1.0 }
     };
 
     for (unsigned int i=0; i<body_.particles.size(); ++i)
@@ -661,16 +715,16 @@ void Mass_spring_viewer::impulse_based_collisions()
         Particle&    p = body_.particles[i];
         const vec3&  x = p.position;
 
-        for (unsigned int j=0; j<4; ++j)
+        for (unsigned int j=0; j<6; ++j)
         {
             // compute distance from plane
-            float dist = x[0]*planes[j][0] + x[1]*planes[j][1] + planes[j][2] - particle_radius_;
+            float dist = x[0]*planes[j][0] + x[1]*planes[j][1] + x[2] * planes[j][2] + planes[j][3] - particle_radius_;
 
             // collision?
             if (dist < 0.0)
             {
                 vec3 v  = p.velocity;
-                vec3 n  = vec3(planes[j][0], planes[j][1], 0);
+                vec3 n  = vec3(planes[j][0], planes[j][1], planes[j][2]);
 
                 // if particle is on the wrong way
                 if (dot(v,n) < 0.0)

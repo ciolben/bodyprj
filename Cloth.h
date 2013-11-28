@@ -6,7 +6,7 @@
 class Cloth
 {
 public:
-    Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_z_position, Mass_spring_system* body_);
+    Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system* body_);
 
 private:
     Mass_spring_system *body_;

@@ -86,18 +86,58 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
 
 //    glShadeModel(GL_SMOOTH);
 //    glEnable(GL_COLOR_MATERIAL);
+
+
+    GLfloat specular_term[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat specular_exponant[] = { 100.0 };
+    GLfloat light_position[] = { -1.0, 1.0, 1.0, 0.0 };
+    GLfloat light_term[] = { 0.8, 0.8, 0.8 };
+    GLfloat ambient_term[] = { 0.3, 0.3, 0.3, 1.0 };
+    glShadeModel(GL_SMOOTH);
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specular_term);
+    glMaterialfv(GL_FRONT, GL_SHININESS, specular_exponant);
+
+
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_term );
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_term );
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_term);
+
+    glEnable(GL_LIGHT0);
+    glEnable(GL_DEPTH_TEST);
+
+
     for (unsigned int i=0; i<particles.size(); ++i)
     {
         const Particle& p = particles[i];
-        if (p.locked)
-            glColor3f(0.6, 0.0, 0.0);
-        else
-            glColor3f(0.0, 0.6, 0.0);
+        GLfloat ambient_material_term[] = { 0.2, 0.2, 0.2, 1.0 };
+        GLfloat diffuse_material_term[] = { 0.2, 0.2, 0.2, 1.0 };
 
-        if (i == selected) {
-            glColor3f(0, 0.0, 0.9);
+        if (p.locked) {
+            glColor3f(0.6, 0.0, 0.0);
+            ambient_material_term[0] = 0.6;
+            diffuse_material_term[0] = 0.6;
+        } else {
+            glColor3f(0.0, 0.6, 0.0);
+            ambient_material_term[1] = 0.6;
+            diffuse_material_term[1] = 0.6;
         }
 
+        if (i == selected) {
+            ambient_material_term[0] = 0.6;
+            ambient_material_term[1] = 0.6;
+            ambient_material_term[2] = 0.6;
+            diffuse_material_term[0] = 0.6;
+            diffuse_material_term[1] = 0.6;
+            diffuse_material_term[2] = 0.6;
+        }
+
+        glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material_term);
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material_term);
+
+        glEnable(GL_LIGHTING);
         glPushMatrix();
         glTranslatef( p.position.x, p.position.y, p.position.z);
         glPushName(i); //*********************************************************
@@ -105,6 +145,7 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
         glPopName();
 
         glPopMatrix();
+        glDisable(GL_LIGHTING);
 
         if (show_forces)
         {
