@@ -3,7 +3,7 @@
 
 #include <qgl.h>
 #include <gl/glut.h>
-#include <Mass_spring_system.h>
+#include "Mass_spring_system.h"
 
 class Object3D
 {

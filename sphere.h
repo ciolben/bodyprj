@@ -1,8 +1,8 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
-#include <utils/vec3.h>
-#include <object3d.h>
+#include "utils/vec3.h"
+#include "object3d.h"
 
 class Sphere : public Object3D
 {

@@ -11,10 +11,16 @@ void Sphere::draw()
     GLfloat light_position[] = { -1.0, 1.0, 1.0, 0.0 };
     GLfloat light_term[] = { 0.8, 0.8, 0.8 };
     GLfloat ambient_term[] = { 0.3, 0.3, 0.3, 1.0 };
+
+    GLfloat ambient_material_term[] = { 0.6, 0.2, 0.2, 1.0 };
+    GLfloat diffuse_material_term[] = { 0.6, 0.2, 0.2, 1.0 };
+
     glShadeModel(GL_SMOOTH);
 
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material_term);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material_term);
     glMaterialfv(GL_FRONT, GL_SPECULAR, specular_term);
     glMaterialfv(GL_FRONT, GL_SHININESS, specular_exponant);
 
@@ -24,6 +30,7 @@ void Sphere::draw()
 
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
 
     glTranslatef(m_center.x, m_center.y, m_center.z);
     glutSolidSphere(m_radius, 50, 50);
