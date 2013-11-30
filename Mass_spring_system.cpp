@@ -100,7 +100,6 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
     glMaterialfv(GL_FRONT, GL_SPECULAR, specular_term);
     glMaterialfv(GL_FRONT, GL_SHININESS, specular_exponant);
 
-
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_term );
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_term );
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_term);

@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     viewer.cpp \
     Mass_spring_viewer.cpp \
     Mass_spring_system.cpp \
-    Cloth.cpp
+    Cloth.cpp \
+    sphere.cpp
 
 HEADERS  += mainwindow.h \
     viewer.h \
@@ -27,7 +28,9 @@ HEADERS  += mainwindow.h \
     Mass_spring_system.h \
     utils/vec2.h \
     utils/vec3.h \
-    Cloth.h
+    Cloth.h \
+    sphere.h \
+    object3d.h
 
 FORMS    += mainwindow.ui
 

@@ -31,7 +31,7 @@ public:
     vec3() { x = 0; y = 0; z = 0; }
     vec3( float a, float b, float c ) { x = a; y = b; z = c; }
     vec3( float a, float b) { x = a; y = b; z = 0.f; }
-    vec3( const float *a ) { x = *a++; y = *a++; z = *a; }
+    vec3( float a ) { x = a; y = a; z = a; }
 
     float* data() { float* res = new float[3]; res[0] = x; res[1] = y; res[2] = z; return res; }
 

@@ -24,6 +24,7 @@
 
 Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
     : camera(camera)
+    , m_objects(std::vector<Object3D*>())
 {
     integration_         = Verlet;
     collisions_          = Impulse_based;
@@ -48,6 +49,14 @@ Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
     selected_ = -1;
 
     camera_gravitation = false;
+}
+
+Mass_spring_viewer::~Mass_spring_viewer()
+{
+    //delete object3ds
+    for(unsigned i = 0; i < m_objects.size(); ++i) {
+        delete m_objects[i];
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -77,6 +86,36 @@ bool Mass_spring_viewer::moveSelectedParticule(const vec3 &offset)
     p.position = 0.5f * (((p.position + 1.f) - offset) - 1.f);
 //    std::cout << p.position << std::endl;
     return true;
+}
+
+void Mass_spring_viewer::addObject3D(Object3D *object3d)
+{
+    if(object3d != NULL) {
+        m_objects.push_back(object3d);
+    }
+}
+
+void Mass_spring_viewer::removeObject3D(Object3D *object3d)
+{
+    if(object3d != NULL) {
+        for(std::vector<Object3D*>::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+            if (*it == object3d) {
+                m_objects.erase(it);
+                delete object3d;
+                break;
+            }
+        }
+    }
+}
+
+void Mass_spring_viewer::removeAllObject3D()
+{
+    for(std::vector<Object3D*>::iterator it = m_objects.begin(); it != m_objects.end(); ++it) {
+        if (*it != NULL) {
+            delete *it;
+        }
+    }
+    m_objects.clear();
 }
 
 bool Mass_spring_viewer::keyboard(QKeyEvent* key)
@@ -236,6 +275,19 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             break;
         }
 
+        // objects adding, sphere (shift remove)
+        case Qt::Key_O:
+        {
+            if (key->modifiers() == Qt::ShiftModifier) {
+                removeAllObject3D();
+            } else {
+                //for now, just one sphere in the center
+                if (m_objects.size() == 1) { break; }
+                addObject3D(new Sphere(vec3(0), 0.33f));
+            }
+            break;
+        }
+
         // let parent class do the work
         default:
         {
@@ -253,57 +305,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
 
 void Mass_spring_viewer::draw()
 {
-    // draw some status text
-//    glDisable(GL_LIGHTING);
-//    glColor3f(1,0,0);
-//    std::ostringstream oss;
-
-//    oss.str("");
-//    oss << "Integration: ";
-//    switch (integration_)
-//    {
-//        case Euler:    oss << "Euler";    break;
-//        case Midpoint: oss << "Midpoint"; break;
-//        case Verlet:   oss << "Verlet";   break;
-//    }
-//    glText(20, height_-40, oss.str());
-
-//    oss.str("");
-//    oss << "#Particles: " << body_.particles.size();
-//    glText(20, height_-60, oss.str());
-
-//    oss.str("");
-//    oss << "#Springs: " << body_.springs.size();
-//    glText(20, height_-80, oss.str());
-
-//    oss.str("");
-//    oss << "#Triangles: " << body_.triangles.size();
-//    glText(20, height_-100, oss.str());
-
-//    oss.str("");
-//    oss << "Area Forces: " << (area_forces_ ? "on" : "off");
-//    glText(20, height_-120, oss.str());
-
-//    oss.str("");
-//    oss << "Collisions: " << (collisions_ == Force_based ? "force" : "impulse");
-//    glText(20, height_-140, oss.str());
-
-//    oss.str("");
-//    oss << "External force: ";
-//    switch (external_force_)
-//    {
-//        case None:        oss << "None";        break;
-//        case Center:      oss << "Center";      break;
-//        case Gravitation: oss << "Gravitation"; break;
-//    }
-//    glText(20, height_-160, oss.str());
-
-//    oss.str("");
-//    oss << "Visualize forces: " << (show_forces_ ? "on" : "off");
-//    glText(20, height_-180, oss.str());
-
-
-    // draw walls
+     // draw walls
     glDisable(GL_LIGHTING);
         glLineWidth(1.0);
         glColor3f(0.5,0.5,0.5);
@@ -357,6 +359,11 @@ void Mass_spring_viewer::draw()
 
     // draw particles, springs, triangles
     body_.draw(particle_radius_, show_forces_, selected_);
+
+    //draw object3ds
+    for(unsigned i = 0; i < m_objects.size(); ++i) {
+        m_objects[i]->draw();
+    }
 }
 
 
@@ -528,6 +535,13 @@ void Mass_spring_viewer::time_integration(float dt)
         impulse_based_collisions();
     }
 
+    // do collision with objects3d
+    for(unsigned o = 0; o < m_objects.size(); ++o) {
+        for (unsigned int i=0; i < body_.particles.size(); ++i) {
+            Particle& p = body_.particles[i];
+            m_objects[o]->collisionResponse(p, particle_radius_);
+        }
+    }
 
     //glutPostRedisplay();
 }

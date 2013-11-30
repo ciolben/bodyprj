@@ -24,6 +24,8 @@
 #include <QObject>
 #include <QGLViewer/qglviewer.h>
 
+#include "sphere.h"
+
 //== CLASS DEFINITION =========================================================
 
 
@@ -36,6 +38,10 @@ class Mass_spring_viewer : public QObject
 public:
     /// constructor
     Mass_spring_viewer(const qglviewer::Camera *camera);
+
+    /// destructor
+    ~Mass_spring_viewer();
+
     /// draw scene
     virtual void draw();
     /// handle keyboard events
@@ -73,14 +79,21 @@ private :
 
     const qglviewer::Camera* camera;
 
+    /// add a 3d object (also manage its destruction)
+    void addObject3D(Object3D* object3d);
+
+    /// remove a 3d object (and delete its pointer)
+    void removeObject3D(Object3D* object3d);
+
+    /// remove all the 3d objects (and destruct them)
+    void removeAllObject3D();
+
 private: // GUI function
 
 
 private: // simulation functions
     /// compute all external and internal forces
     void compute_forces();
-
-
 
     /// perform impulse-based collision handling
     void impulse_based_collisions();
@@ -141,6 +154,9 @@ private: // simulation data
 
     /// the interactive spring controlled by the mouse
     Mouse_spring mouse_spring_;
+
+    /// Objects for collision
+    std::vector<Object3D*> m_objects;
 };
 
 
