@@ -44,11 +44,11 @@ void Mass_spring_system::add_particle(vec2 position, vec2 velocity, float mass, 
 //-----------------------------------------------------------------------------
 
 
-void Mass_spring_system::add_spring(unsigned int i0, unsigned int i1)
+void Mass_spring_system::add_spring(unsigned int i0, unsigned int i1, bool breakable)
 {
     assert(i0 < particles.size());
     assert(i1 < particles.size());
-    springs.push_back( Spring(particles[i0], particles[i1]) );
+    springs.push_back( Spring(particles[i0], particles[i1], breakable ));
 }
 
 
@@ -166,8 +166,10 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
     glBegin(GL_LINES);
     for (unsigned int i=0; i<springs.size(); ++i)
     {
-        glVertex3fv( springs[i].particle0->position.data() );
-        glVertex3fv( springs[i].particle1->position.data() );
+        if (!springs[i].is_broken) {
+            glVertex3fv( springs[i].particle0->position.data() );
+            glVertex3fv( springs[i].particle1->position.data() );
+        }
     }
     glEnd();
 

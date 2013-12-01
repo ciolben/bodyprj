@@ -157,7 +157,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
 
             for (unsigned int i=0; i<9; ++i)
             {
-                body_.add_spring(i, i+1);
+                body_.add_spring(i, i+1, true);
             }
 
             //glutPostRedisplay();
@@ -543,6 +543,11 @@ void Mass_spring_viewer::time_integration(float dt)
         }
     }
 
+    // test spring state
+    for (unsigned int i=0; i<body_.springs.size(); ++i) {
+        body_.springs[i].break_test();
+    }
+
     //glutPostRedisplay();
 }
 
@@ -653,23 +658,25 @@ Mass_spring_viewer::compute_forces()
     for (unsigned int i=0; i<body_.springs.size(); ++i)
     {
         Spring& spring = body_.springs[i];
+        if(!spring.is_broken) {
 
-        Particle& p0 = *spring.particle0;
-        Particle& p1 = *spring.particle1;
+            Particle& p0 = *spring.particle0;
+            Particle& p1 = *spring.particle1;
 
-        vec3 x0 = p0.position;
-        vec3 x1 = p1.position;
-        vec3  d = normalize(x0 - x1);
+            vec3 x0 = p0.position;
+            vec3 x1 = p1.position;
+            vec3  d = normalize(x0 - x1);
 
-        float   l = spring.length();
-        float   L = spring.rest_length;
+            float   l = spring.length();
+            float   L = spring.rest_length;
 
-        vec3 f0 = -d * (spring_stiffness_ * (l-L) +
-                        spring_damping_   * dot(p0.velocity-p1.velocity, d));
-        vec3 f1 = -f0;
+            vec3 f0 = -d * (spring_stiffness_ * (l-L) +
+                            spring_damping_   * dot(p0.velocity-p1.velocity, d));
+            vec3 f1 = -f0;
 
-        p0.force += f0;
-        p1.force += f1;
+            p0.force += f0;
+            p1.force += f1;
+        }
     }
 
 

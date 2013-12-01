@@ -60,10 +60,11 @@ class Spring
 {
 public:
     /// construct with two particles. automatically computes rest length.
-    Spring(Particle& p0, Particle& p1)
-    : particle0(&p0), particle1(&p1)
+    Spring(Particle& p0, Particle& p1, bool breakable = false)
+        : particle0(&p0), particle1(&p1), is_broken(false), breakable(breakable)
     {
         rest_length = length();
+        maximum_length = rest_length * 1.5f;
     }
 
     /// get current length of the spring
@@ -72,9 +73,23 @@ public:
         return norm(particle0->position - particle1->position);
     }
 
+    void break_test() {
+        if(breakable) {
+            if (length() > maximum_length) {
+                is_broken = true;
+            }
+        }
+    }
+
+
     Particle*  particle0;   ///< pointer to first particle
     Particle*  particle1;   ///< pointer to second particle
     float      rest_length; ///< rest length
+
+    float maximum_length;
+    bool is_broken;
+    bool breakable;
+
 };
 
 
@@ -131,7 +146,7 @@ public:
     void add_particle(vec2 position, vec2 velocity, float mass, bool locked);
 
     /// add a spring
-    void add_spring(unsigned int i0, unsigned int i1);
+    void add_spring(unsigned int i0, unsigned int i1, bool breakable = false);
 
     /// add a triangle
     void add_triangle(unsigned int i0, unsigned int i1, unsigned int i2);

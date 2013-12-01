@@ -63,10 +63,10 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
         for(int j = 0; j < grid_width - 1; ++j) {
             body_->add_spring(
                         i + j  * grid_height,
-                        (i + 1) + (j + 1) * grid_height );
+                        (i + 1) + (j + 1) * grid_height, true );
             body_->add_spring(
                         (i + 1) + j  * grid_height,
-                        i + (j + 1) * grid_height );
+                        i + (j + 1) * grid_height, true );
         }
     }
 }
