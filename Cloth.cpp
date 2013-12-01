@@ -17,12 +17,16 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
 
     body_->clear();
     // add the particles
-    for(double z(minZ); z < maxZ; z = z + stepZ) {
-        for(double x(minX); x < maxX; x = x + stepX) {
+    double x = minX;
+    double z = minZ;
+    for(double zCounter(0); zCounter < grid_height; ++zCounter) {
+        for(double xCounter(0); xCounter < grid_width; ++xCounter) {
             body_->add_particle( vec3(x, cloth_y_position, z),
                                 vec3(), cloth_particle_mass, false );
-
+            x += stepX;
         }
+        z += stepZ;
+        x = minX;
     }
 
 //    // add the spring

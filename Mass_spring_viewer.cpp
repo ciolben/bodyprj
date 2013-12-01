@@ -49,6 +49,13 @@ Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
     selected_ = -1;
 
     camera_gravitation = false;
+
+    cloth_simulation = false;
+
+    cloth_width = 10;
+    cloth_height = 10;
+
+    cloth_show_particles = false;
 }
 
 Mass_spring_viewer::~Mass_spring_viewer()
@@ -74,6 +81,7 @@ void Mass_spring_viewer::drawWithNames()
 void Mass_spring_viewer::setSelected(int selected)
 {
     selected_ = selected;
+    std::cerr << selected << std::endl;
 }
 
 bool Mass_spring_viewer::moveSelectedParticule(const vec3 &offset)
@@ -125,6 +133,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 1
         case Qt::Key_1:
         {
+            cloth_simulation = false;
             body_.clear();
             body_.add_particle( vec2(-0.5, -0.5), vec2(14.0, -2.0), particle_mass_, false );
             printInfo("1 particle");
@@ -135,6 +144,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 5
         case Qt::Key_2:
         {
+            cloth_simulation = false;
             body_.clear();
             for (int i=0; i<100; ++i)
             {
@@ -148,6 +158,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 4
         case Qt::Key_3:
         {
+            cloth_simulation = false;
             body_.clear();
 
             for (int i=0; i<10; ++i)
@@ -167,6 +178,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 2
         case Qt::Key_4:
         {
+            cloth_simulation = false;
             body_.clear();
 
             body_.add_particle( vec2(-0.1, 0.7), vec2(0.0, 0.0), particle_mass_, false );
@@ -186,6 +198,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 3
         case Qt::Key_5:
         {
+            cloth_simulation = false;
             body_.clear();
 
             for (int i=0; i<8; ++i)
@@ -206,7 +219,9 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             break;
         }
         case Qt::Key_6: {
-            Cloth cloth(10, 10, 0.7, &body_);
+            Cloth cloth(cloth_width, cloth_height, 0.7, &body_);
+            cloth_simulation = true;
+
             break;
         }
         // switch between time integration methods
@@ -288,6 +303,11 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             break;
         }
 
+        case Qt::Key_U:
+        {
+            cloth_show_particles = !cloth_show_particles;
+        }
+
         // let parent class do the work
         default:
         {
@@ -358,7 +378,11 @@ void Mass_spring_viewer::draw()
 
 
     // draw particles, springs, triangles
-    body_.draw(particle_radius_, show_forces_, selected_);
+    if (!cloth_simulation || cloth_show_particles) {
+        body_.draw(particle_radius_, show_forces_, selected_);
+    } else {
+        body_.draw_cloth(particle_radius_, cloth_width, cloth_height);
+    }
 
     //draw object3ds
     for(unsigned i = 0; i < m_objects.size(); ++i) {

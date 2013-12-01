@@ -154,6 +154,9 @@ public:
     /// render the mass spring system
     void draw(float particle_radius, bool show_forces, int selected = -1) const;
 
+    /// render the mass spring system if the particles represents a cloth
+    void draw_cloth(float particle_radius, int width, int height)  const;
+
 public:
     std::vector<Particle>  particles; ///< vector of all particles
     std::vector<Spring>    springs;   ///< vector of all springs

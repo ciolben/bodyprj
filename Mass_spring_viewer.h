@@ -137,6 +137,13 @@ private: // parameter settings
 
     bool camera_gravitation;
 
+    bool cloth_simulation;
+
+    int cloth_width;
+    int cloth_height;
+
+    bool cloth_show_particles;
+
 private: // simulation data
     /// the mass spring system to be simulated
     Mass_spring_system body_;

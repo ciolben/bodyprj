@@ -186,4 +186,76 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
     glEnd();
 }
 
+void Mass_spring_system::draw_cloth(float particle_radius, int width, int height) const
+{
+        GLfloat specular_term[] = { 0.2, 0.2, 0.6, 1.0 };
+        GLfloat specular_exponant[] = { 10.0 };
+        GLfloat light_position[] = { -1.0, 1.0, 1.0, 0.0 };
+        GLfloat light_term[] = { 0.8, 0.8, 0.8 };
+        GLfloat ambient_term[] = { 0.3, 0.3, 0.3, 1.0 };
+        glShadeModel(GL_SMOOTH);
+
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+        glMaterialfv(GL_FRONT, GL_SPECULAR, specular_term);
+        glMaterialfv(GL_FRONT, GL_SHININESS, specular_exponant);
+
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, light_term );
+        glLightfv(GL_LIGHT0, GL_SPECULAR, light_term );
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_term);
+
+
+        GLfloat ambient_material_term[] = { 0.2, 0.2, 0.6, 1.0 };
+        GLfloat diffuse_material_term[] = { 0.2, 0.2, 0.6, 1.0 };
+
+        glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material_term);
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material_term);
+
+        glEnable(GL_LIGHT0);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_LIGHTING);
+        glEnable( GL_TEXTURE_2D );
+        glBegin( GL_TRIANGLES );
+        for(int h = 0; h < height - 1; ++h)
+        {
+            for(int w=0; w < width - 1; ++w) {
+                int currentIndex = w + width * h;
+                int neighbor1 = w + 1 + width * h;
+                int neighbor2 = w + width * (h + 1);
+                int neighbor3 = w + 1 + width * (h + 1);
+
+                const Particle& p1 = particles[currentIndex];
+                const Particle& p2 = particles[neighbor1];
+                const Particle& p3 = particles[neighbor2];
+                const Particle& p4 = particles[neighbor3];
+
+
+                vec3 p1p4 = p4.position - p1.position;
+                vec3 p1p2 = p2.position - p1.position;
+                vec3 normal1 = p1p4^p1p2;
+                normal1 = normalize(normal1);
+                glNormal3f(normal1.x, normal1.y, normal1.z);
+
+                glVertex3f(p1.position.x, p1.position.y, p1.position.z);
+                glVertex3f(p2.position.x, p2.position.y, p2.position.z);
+                glVertex3f(p4.position.x, p4.position.y, p4.position.z);
+
+
+                vec3 p1p3 = p3.position - p1.position;
+                vec3 normal2 = p1p3^p1p4;
+                normal2 = normalize(normal2);
+                glNormal3f(normal2.x, normal2.y, normal2.z);
+
+                glVertex3f(p1.position.x, p1.position.y, p1.position.z);
+                glVertex3f(p4.position.x, p4.position.y, p4.position.z);
+                glVertex3f(p3.position.x, p3.position.y, p3.position.z);
+
+            }
+        }
+
+        glEnd();
+        glDisable(GL_LIGHTING);
+        glDisable(GL_COLOR_MATERIAL);
+}
+
 //=============================================================================
