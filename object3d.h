@@ -2,7 +2,11 @@
 #define OBJECT3D_H
 
 #include <qgl.h>
-#include <gl/glut.h>
+#ifdef __APPLE__
+    #include <GLUT/glut.h>
+#else
+    #include <gl/glut.h>
+#endif
 #include "Mass_spring_system.h"
 
 class Object3D

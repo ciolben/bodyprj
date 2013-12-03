@@ -185,7 +185,7 @@ void Viewer::keyPressEvent(QKeyEvent *e)
 void Viewer::mouseMoveEvent(QMouseEvent *e)
 {
     if (e->buttons() == Qt::LeftButton) {
-        QPoint& p = e->pos();
+        QPoint p = e->pos();
         //vec2 mpos = pick(p.x(), p.y());
         vec2 mpos(p.x(), p.y());
         //original code
