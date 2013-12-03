@@ -65,7 +65,8 @@ void Viewer::init()
   setMouseBinding(Qt::RightButton, CAMERA, ROTATE);
   setMouseBinding(Qt::LeftButton, SELECT);
 
-  m_time_step = 0.0003125;//0.01;
+  m_time_step = 0.00015625;//0.01;
+  this->setAnimationPeriod(2);
   startAnimation();
 
   //init camera
@@ -79,6 +80,7 @@ void Viewer::init()
   setMouseBinding(Qt::LeftButton, SELECT);
 
   setManipulatedFrame( camera()->frame() );
+
 
   // Opens help window
     //  help();
