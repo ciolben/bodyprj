@@ -381,7 +381,8 @@ void Mass_spring_viewer::draw()
     if (!cloth_simulation || cloth_show_particles) {
         body_.draw(particle_radius_, show_forces_, selected_);
     } else {
-        body_.draw_cloth(particle_radius_, cloth_width, cloth_height);
+        body_.compute_normals(cloth_width, cloth_height);
+        body_.draw_cloth(cloth_width, cloth_height);
     }
 
     //draw object3ds

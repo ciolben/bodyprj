@@ -46,6 +46,8 @@ struct Particle
     vec3  position_t;   ///< used for Midpoint integration
     vec3  velocity_t;   ///< used for Midpoint integration
     vec3  acceleration; ///< used for Verlet integration
+
+    vec3 normal;
 };
 
 
@@ -155,7 +157,9 @@ public:
     void draw(float particle_radius, bool show_forces, int selected = -1) const;
 
     /// render the mass spring system if the particles represents a cloth
-    void draw_cloth(float particle_radius, int width, int height)  const;
+    void draw_cloth(int width, int height) const;
+
+    void compute_normals(int width, int height);
 
 public:
     std::vector<Particle>  particles; ///< vector of all particles

@@ -66,6 +66,45 @@ void Mass_spring_system::add_triangle(unsigned int i0, unsigned int i1, unsigned
 
 //-----------------------------------------------------------------------------
 
+void Mass_spring_system::compute_normals(int width, int height)
+{
+    for(int h = 1; h < height - 1; ++h)
+    {
+        for(int w = 1; w < width - 1; ++w) {
+//                n1 - n2 - n3
+//                n4 - cr - n5
+//                n6 - n7 - n8
+
+            int currentIndex = w + width * h;
+            int neighbor5 = w + 1 + width * h;
+            int neighbor2 = w + width * (h + 1);
+            int neighbor4 = w - 1 + width * h;
+            int neighbor7 = w + width * (h - 1);
+
+            Particle& cr = particles[currentIndex];
+            const Particle& p2 = particles[neighbor2];
+            const Particle& p4 = particles[neighbor4];
+            const Particle& p5 = particles[neighbor5];
+            const Particle& p7 = particles[neighbor7];
+
+            vec3 crp5 = p5.position - cr.position;
+            vec3 crp2 = p2.position - cr.position;
+            vec3 normal1 = crp5^crp2;
+
+            vec3 crp4 = p4.position - cr.position;
+            vec3 normal2 = crp4^crp2;
+
+            vec3 crp7 = p7.position - cr.position;
+            vec3 normal3 = crp7^crp4;
+
+            vec3 normal4 = crp5^crp7;
+
+            vec3 normal_av = normal1 + normal2 + normal3 + normal4;
+
+            cr.normal = normalize(normal_av);
+        }
+    }
+}
 
 void Mass_spring_system::draw(float particle_radius, bool show_forces, int selected) const
 {
@@ -186,7 +225,7 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
     glEnd();
 }
 
-void Mass_spring_system::draw_cloth(float particle_radius, int width, int height) const
+void Mass_spring_system::draw_cloth(int width, int height) const
 {
         GLfloat specular_term[] = { 0.2, 0.2, 0.6, 1.0 };
         GLfloat specular_exponant[] = { 10.0 };
@@ -216,9 +255,12 @@ void Mass_spring_system::draw_cloth(float particle_radius, int width, int height
         glEnable(GL_LIGHTING);
         glEnable( GL_TEXTURE_2D );
         glBegin( GL_TRIANGLES );
-        for(int h = 0; h < height - 1; ++h)
+
+
+        for(int h = 1; h < height - 2; ++h)
         {
-            for(int w=0; w < width - 1; ++w) {
+            for(int w = 1; w < width - 2; ++w) {
+
                 int currentIndex = w + width * h;
                 int neighbor1 = w + 1 + width * h;
                 int neighbor2 = w + width * (h + 1);
@@ -229,29 +271,24 @@ void Mass_spring_system::draw_cloth(float particle_radius, int width, int height
                 const Particle& p3 = particles[neighbor2];
                 const Particle& p4 = particles[neighbor3];
 
-
-                vec3 p1p4 = p4.position - p1.position;
-                vec3 p1p2 = p2.position - p1.position;
-                vec3 normal1 = p1p4^p1p2;
-                normal1 = normalize(normal1);
-                glNormal3f(normal1.x, normal1.y, normal1.z);
-
+                glNormal3f(p1.normal.x, p1.normal.y, p1.normal.z);
                 glVertex3f(p1.position.x, p1.position.y, p1.position.z);
+                glNormal3f(p2.normal.x, p2.normal.y, p2.normal.z);
                 glVertex3f(p2.position.x, p2.position.y, p2.position.z);
+                glNormal3f(p4.normal.x, p4.normal.y, p4.normal.z);
                 glVertex3f(p4.position.x, p4.position.y, p4.position.z);
 
-
-                vec3 p1p3 = p3.position - p1.position;
-                vec3 normal2 = p1p3^p1p4;
-                normal2 = normalize(normal2);
-                glNormal3f(normal2.x, normal2.y, normal2.z);
-
+                glNormal3f(p1.normal.x, p1.normal.y, p1.normal.z);
                 glVertex3f(p1.position.x, p1.position.y, p1.position.z);
+                glNormal3f(p4.normal.x, p4.normal.y, p4.normal.z);
                 glVertex3f(p4.position.x, p4.position.y, p4.position.z);
+                glNormal3f(p3.normal.x, p3.normal.y, p3.normal.z);
                 glVertex3f(p3.position.x, p3.position.y, p3.position.z);
 
             }
         }
+
+
 
         glEnd();
         glDisable(GL_LIGHTING);
