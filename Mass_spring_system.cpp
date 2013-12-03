@@ -14,7 +14,11 @@
 //== INCLUDES =================================================================
 
 #include "Mass_spring_system.h"
-#include <gl/glut.h>
+#ifdef __APPLE__
+    #include <GLUT/glut.h>
+#else
+    #include <gl/glut.h>
+#endif
 
 //== IMPLEMENTATION ========================================================== 
 

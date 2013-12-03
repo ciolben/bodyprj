@@ -19,7 +19,12 @@
 #include "utils/vec3.h"
 #include "utils/vec2.h"
 #include <qgl.h>
-#include <gl/glut.h>
+#ifdef __APPLE__
+    #include <GLUT/glut.h>
+#else
+    #include <gl/glut.h>
+#endif
+
 #include <vector>
 
 #include "QGLViewer/manipulatedFrame.h"

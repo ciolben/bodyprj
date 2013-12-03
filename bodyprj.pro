@@ -12,7 +12,11 @@ TEMPLATE = app
 CONFIG += qt opengl
 
 #path to where is the libqglviewer root
-LIBQGL_PATH = "C:/Program Files (x86)/libQGLViewer"
+win32:LIBQGL_PATH = "C:/Program Files (x86)/libQGLViewer"
+macx: {
+    LIBS += -framework QGLViewer
+    LIBS += -framework OpenGL -framework GLUT
+}
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -37,7 +41,8 @@ FORMS    += mainwindow.ui
 # ----LibQGL stuff----
 win32:INCLUDEPATH += $$LIBQGL_PATH/sources
 win32:DEPENDPATH += $$LIBQGL_PATH/sources
-macx:INCLUDEPATH += $$LIBQGL_PATH
+macx:INCLUDEPATH += $$LIBQGL_PATH/Versions/2/Headers
+macx:DEPENDPATH += $$LIBQGL_PATH/Versions/2/Headers
 
 # LIB_NAME
 win32 {
@@ -49,6 +54,5 @@ win32 {
 }
 
 win32:LIBS += -L$$LIBQGL_PATH/lib/QGLViewer -l$$LIB_NAME
-macx:LIBS += -L$$LIBQGL_PATH/../Library/Frameworks -lQGLViewer
 
 #--------------------
