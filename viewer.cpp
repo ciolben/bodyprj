@@ -35,24 +35,6 @@ void Viewer::draw()
   const float nbSteps = 200.0;
 
   m_massViewer.draw();
-//  glBegin(GL_QUAD_STRIP);
-//  for (int i=0; i<nbSteps; ++i)
-//    {
-//      const float ratio = i/nbSteps;
-//      const float angle = 21.0*ratio;
-//      const float c = cos(angle);
-//      const float s = sin(angle);
-//      const float r1 = 1.0 - 0.8f*ratio;
-//      const float r2 = 0.8f - 0.8f*ratio;
-//      const float alt = ratio - 0.5f;
-//      const float nor = 0.5f;
-//      const float up = sqrt(1.0-nor*nor);
-//      glColor3f(1.0-ratio, 0.2f , ratio);
-//      glNormal3f(nor*c, up, nor*s);
-//      glVertex3f(r1*c, alt, r1*s);
-//      glVertex3f(r2*c, alt+0.05f, r2*s);
-//    }
-//  glEnd();
 }
 
 void Viewer::init()
@@ -88,7 +70,7 @@ void Viewer::init()
 
 QString Viewer::helpString() const
 {
-  QString text("<h2>S i m p l e V i e w e r</h2>");
+  QString text("<h2>Cloth Simulation</h2>");
   text += "Use the mouse to move the camera around the object. ";
   text += "You can respectively revolve around, zoom and translate with the three mouse buttons. ";
   text += "Left and middle buttons pressed together rotate around the camera view direction axis<br><br>";
@@ -186,14 +168,12 @@ void Viewer::mouseMoveEvent(QMouseEvent *e)
 {
     if (e->buttons() == Qt::LeftButton) {
         QPoint p = e->pos();
-        //vec2 mpos = pick(p.x(), p.y());
+//        vec2 mpos = pick(p.x(), p.y());
         vec2 mpos(p.x(), p.y());
         //original code
 //        m_massViewer.motion(mpos.data()[0],mpos.data()[1]);
         //new implementation
-        if (!m_massViewer
-                .moveSelectedParticule(vec3((mpos.data()[0] / this->width() * 2.f)
-                                   , (mpos.data()[1] / this->height()) * 2.f))) {
+        if (!m_massViewer.moveSelectedParticule(mpos)) {
             QGLViewer::mouseMoveEvent(e); //handle default if selected was -1
         }
     } else {
@@ -204,7 +184,6 @@ void Viewer::mouseMoveEvent(QMouseEvent *e)
 void Viewer::animate()
 {
     m_massViewer.time_integration(m_time_step);
-   // std::cout << "select " << selectedName() << std::endl;
 }
 
 void Viewer::handleNewInfo(const QString &info)

@@ -80,19 +80,40 @@ void Mass_spring_viewer::drawWithNames()
 
 void Mass_spring_viewer::setSelected(int selected)
 {
+    m_oldDepth = 0.9f;
     selected_ = selected;
     std::cerr << selected << std::endl;
 }
 
-bool Mass_spring_viewer::moveSelectedParticule(const vec3 &offset)
+bool Mass_spring_viewer::moveSelectedParticule(const vec2 &mousePos)
 {
     if (selected_ == -1) { return false; }
     Particle& p = body_.particles.at(selected_);
- //   std::cout << "off : " << offset << " :: pos" << p.position << std::endl;
- //   std::cout << "diff : " << (((p.position + 1.f)) - offset);
- //   std::cout << " mid : " << (((p.position + 1.f)) - offset) - 1.f << std::endl;
-    p.position = 0.5f * (((p.position + 1.f) - offset) - 1.f);
-//    std::cout << p.position << std::endl;
+
+    QPoint pointp(mousePos.data()[0], mousePos.data()[1]);
+    bool found;
+
+    float depth;
+    glReadPixels(pointp.x(), camera->screenHeight()-1-pointp.y(), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+    found = depth < 1.0;
+    if (found) {
+        //we fix the depth (smooth transitions)
+        m_oldDepth = depth;
+    }
+
+    qglviewer::Vec point(pointp.x(), pointp.y(), m_oldDepth);
+    point = camera->unprojectedCoordinatesOf(point);
+
+    p.position = vec3(point[0], point[1], p.position.z);
+
+    //other way to do it (but there is a jump when clicked)
+//    QPoint pixel(mousePos.data()[0], mousePos.data()[1]);
+//    qglviewer::Vec v( ((2.0 * pixel.x() / camera->screenWidth()) - 1.0) /** tan(camera->fieldOfView()/2.0) * camera->aspectRatio()*/,
+//       ((2.0 * (camera->screenHeight()-pixel.y()) / camera->screenHeight()) - 1.0) /** tan(camera->fieldOfView()/2.0)*/,
+//       -1.0 );
+//    vec3 projPos(v[0], v[1], p.position.z);
+//    p.position = projPos;
+
     return true;
 }
 

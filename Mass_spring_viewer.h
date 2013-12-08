@@ -64,7 +64,7 @@ public:
     //set the selected particule
     void setSelected(int selected);
 
-    bool moveSelectedParticule(const vec3& offset);
+    bool moveSelectedParticule(const vec2 &mousePos);
 
 signals:
     void newInfo(const QString& info);
@@ -143,6 +143,8 @@ private: // parameter settings
     int cloth_height;
 
     bool cloth_show_particles;
+
+    float m_oldDepth;
 
 private: // simulation data
     /// the mass spring system to be simulated
