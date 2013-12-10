@@ -227,6 +227,7 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
         glVertex3fv( triangles[i].particle2->position.data() );
     }
     glEnd();
+    glEnable(GL_LIGHTING);
 }
 
 void Mass_spring_system::draw_cloth(int width, int height) const

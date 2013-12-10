@@ -410,6 +410,7 @@ void Mass_spring_viewer::draw()
     for(unsigned i = 0; i < m_objects.size(); ++i) {
         m_objects[i]->draw();
     }
+
 }
 
 
