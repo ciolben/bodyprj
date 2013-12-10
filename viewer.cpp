@@ -4,7 +4,7 @@
 
 using namespace std;
 
-Viewer::Viewer() : m_massViewer(this->camera())  {
+Viewer::Viewer() : m_massViewer(this->camera()){
     connect(&m_massViewer, &Mass_spring_viewer::newInfo, this, &Viewer::handleNewInfo);
     show_axis = false;
 }
@@ -33,14 +33,18 @@ vec2 Viewer::pick(int _x, int _y)
 void Viewer::draw()
 {
   const float nbSteps = 200.0;
-
+  //  startScreenCoordinatesSystem(true);
+  int coeff = 5;
+    m_skybox.SkyBox_Draw(0, 0, 0, coeff, coeff, coeff);
+  //  stopScreenCoordinatesSystem();
   m_massViewer.draw();
+
 }
 
 void Viewer::init()
 {
   // Restore previous viewer state.
-  restoreStateFromFile();
+//  restoreStateFromFile();
   setAxisIsDrawn(false);
 
   //init mouse
@@ -55,6 +59,13 @@ void Viewer::init()
   camera()->setPosition(qglviewer::Vec(0.0f, 2.0f, 3.0f));
   camera()->setUpVector(qglviewer::Vec(0.0f, 1.0f, 0.0f));
   camera()->lookAt(qglviewer::Vec(0.0f, 0.0f, 0.0f));
+  qDebug() << "znear : " << camera()->zNear();
+  qDebug() << "zfar : " << camera()->zFar();
+  qDebug() << "znearc : " << camera()->zNearCoefficient();
+  qDebug() << "zclipc : " << camera()->zClippingCoefficient();
+//  camera()->setZNearCoefficient(0.0f);
+//  camera()->setZClippingCoefficient(10.f);
+//  setSceneBoundingBox(0.1, 1000);
 
   setMouseTracking(true);
 
@@ -63,8 +74,14 @@ void Viewer::init()
 
   setManipulatedFrame( camera()->frame() );
 
+    //skybox
+  // Enable GL textures
+//  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+//  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+//  glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+  m_skybox.SkyBox_CreateTexture();
 
-  // Opens help window
+    // Opens help window
     //  help();
 }
 

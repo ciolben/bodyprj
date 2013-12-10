@@ -5,6 +5,8 @@
 #include "Mass_spring_viewer.h"
 #include "QGLViewer/config.h"
 
+#include "skybox.h"
+
 #include <QKeyEvent>
 
 class Viewer : public QGLViewer {
@@ -18,6 +20,8 @@ private :
     bool show_axis;
 
     vec2 pick(int x, int y);
+
+    Skybox m_skybox;
 
 protected :
   virtual void draw();

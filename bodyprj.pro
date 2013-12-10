@@ -24,7 +24,9 @@ SOURCES += main.cpp\
     Mass_spring_viewer.cpp \
     Mass_spring_system.cpp \
     Cloth.cpp \
-    sphere.cpp
+    sphere.cpp \
+    skybox.cpp \
+    utils/TGALoader.cpp
 
 HEADERS  += mainwindow.h \
     viewer.h \
@@ -34,7 +36,10 @@ HEADERS  += mainwindow.h \
     utils/vec3.h \
     Cloth.h \
     sphere.h \
-    object3d.h
+    object3d.h \
+    skybox.h \
+    utils/Texture.h \
+    utils/Tga.h
 
 FORMS    += mainwindow.ui
 
