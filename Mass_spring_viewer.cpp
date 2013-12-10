@@ -252,7 +252,8 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             {
                 case Euler:    integration_ = Midpoint; printInfo("Midpoint"); break;
                 case Midpoint: integration_ = Verlet;   printInfo("Verlet"); break;
-                case Verlet:   integration_ = Euler;    printInfo("Euler"); break;
+                case Verlet:   integration_ = Implicit;    printInfo("Implicit"); break;
+                case Implicit: integration_ = Euler;    printInfo("Euler"); break;
             }
             //glutPostRedisplay();
             break;
@@ -670,6 +671,55 @@ void Mass_spring_viewer::time_integration(float dt)
             for (unsigned int i=0; i<m_objects.size(); ++i){
                 m_objects[i]->acceleration = m_objects[i]->force / m_objects[i]->mass;
             }
+
+            break;
+        }
+
+        case Implicit:
+        {
+        compute_forces();
+            //Jacobian
+            for(unsigned int i(0); i<body_.springs.size(); ++i ){
+                Spring& spring = body_.springs[i];
+                Eigen::Vector3f pos0(spring.particle0->position[0], spring.particle0->position[1], spring.particle0->position[2]);
+                Eigen::Vector3f pos1(spring.particle1->position[0], spring.particle1->position[1], spring.particle1->position[2]);
+                Eigen::Vector3f dx = pos0 - pos1;
+                Eigen::Matrix3f dxtdx, I3x3;
+                dxtdx = dx * dx.transpose();
+                I3x3 = Eigen::Matrix3f::Identity(3,3);
+
+                float l = std::sqrt(dx.dot(dx));
+                if( l != 0 ) l = 1.0/l;
+
+                dxtdx = dxtdx*(l*l);
+
+                spring.Jx = (dxtdx + (I3x3-dxtdx)*(1-spring.rest_length*l))* spring_stiffness_;
+                spring.Jv = Eigen::Matrix3f::Identity(3,3);
+                spring.Jv *= spring_damping_;
+
+
+
+                // calculations for A*v(t+h) = b, resolve for v(t+h)
+                Eigen::Matrix3f A = Eigen::Matrix3f::Identity(3,3) - (dt/particle_mass_)*spring.Jv - (dt*dt/particle_mass_)*spring.Jx;
+                Eigen::Vector3f v0(spring.particle0->velocity[0], spring.particle0->velocity[1], spring.particle0->velocity[2]);
+                Eigen::Vector3f v1(spring.particle1->velocity[0], spring.particle1->velocity[1], spring.particle1->velocity[2]);
+
+                Eigen::Vector3f f0(spring.particle0->force[0], spring.particle0->force[1], spring.particle0->force[2]);
+                Eigen::Vector3f f1(spring.particle1->force[0], spring.particle1->force[1], spring.particle1->force[2]);
+
+                Eigen::Vector3f b0 = v0 + (dt/particle_mass_)*f0 - (dt/particle_mass_)*spring.Jv*v0;
+                Eigen::Vector3f b1 = v1 + (dt/particle_mass_)*f1 - (dt/particle_mass_)*spring.Jv*v1;
+
+                /*if(symmetric_positive()){
+                    cholesky() (llt in <Eigen/Cholesky>)
+                } else {
+                    LU() (<Eigen/LU>)
+                }*/
+
+
+                //x(t+h) = x(t) + h*v(t+h);
+            }
+
 
             break;
         }

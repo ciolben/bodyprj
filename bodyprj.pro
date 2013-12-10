@@ -44,6 +44,8 @@ win32:DEPENDPATH += $$LIBQGL_PATH/sources
 macx:INCLUDEPATH += $$LIBQGL_PATH/Versions/2/Headers
 macx:DEPENDPATH += $$LIBQGL_PATH/Versions/2/Headers
 
+INCLUDEPATH += "C:\Users\Nicolas\Desktop\adv compG\bodyprj\Eigen"
+
 # LIB_NAME
 win32 {
   LIB_NAME = QGLViewer
