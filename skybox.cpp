@@ -14,7 +14,7 @@ void Skybox::SkyBox_CreateTexture(void)
 {
         int i=1;
 
-        QString skyboxName = "C:\\Users\\Loic\\Coding_Main\\compg\\bodyprj\\data\\hw_arctic\\arctic_";
+        QString skyboxName = "data\\hw_arctic\\arctic_";
         QString ext = ".tga";
 
         Texture* tex[6]; int k = 0;
