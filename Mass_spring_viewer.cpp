@@ -318,7 +318,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
                 removeAllObject3D();
             } else {
                 //for now, just one sphere in the center
-                if (m_objects.size() == 1) { break; }
+                //if (m_objects.size() == 1) { break; }
                 addObject3D(new Sphere(vec3(0), 0.33f));
             }
             break;
@@ -327,6 +327,13 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         case Qt::Key_U:
         {
             cloth_show_particles = !cloth_show_particles;
+            break;
+        }
+
+        case Qt::Key_Space:
+        {
+            throw_sphere();
+            break;
         }
 
         // let parent class do the work
@@ -412,6 +419,18 @@ void Mass_spring_viewer::draw()
     }
 }
 
+void Mass_spring_viewer::throw_sphere() {
+    if(cloth_simulation) {
+        std::cerr << "Tada ! " << std::endl;
+        qglviewer::Vec camera_position_tmp = camera->position();
+        vec3 camera_position(camera_position_tmp[0], camera_position_tmp[1], camera_position_tmp[2]);
+        vec3 throw_direction = -camera_position;
+        throw_direction = normalize(throw_direction);
+        addObject3D(new Sphere(/*camera_position*/vec3(0)
+                                , 0.1f, 0.1f, false
+                                , throw_direction));
+    }
+}
 
 //-----------------------------------------------------------------------------
 
@@ -498,6 +517,21 @@ void Mass_spring_viewer::time_integration(float dt)
             for (unsigned int i=0; i<body_.particles.size(); ++i)
                 if (!body_.particles[i].locked)
                     body_.particles[i].velocity += dt * body_.particles[i].force / body_.particles[i].mass;
+
+
+            // update positions
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->position += dt * m_objects[i]->velocity;
+                }
+            }
+
+            // update velocities
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->velocity += dt * m_objects[i]->force / m_objects[i]->mass;
+                }
+            }
 
             break;
         }
@@ -608,6 +642,10 @@ Mass_spring_viewer::compute_forces()
     for (unsigned int i=0; i<body_.particles.size(); ++i)
         body_.particles[i].force = vec3(0,0,0);
 
+    for (unsigned int i=0; i<m_objects.size(); ++i){
+        m_objects[i]->force = vec3(0,0,0);
+    }
+
 
     /** \todo (Part 1) Implement center force
      */
@@ -625,6 +663,10 @@ Mass_spring_viewer::compute_forces()
      */
     for (unsigned int i=0; i<body_.particles.size(); ++i)
           body_.particles[i].force += damping_ * -body_.particles[i].velocity;
+
+    for (unsigned int i = 0; i < m_objects.size(); ++i){
+        m_objects[i]->force += damping_ * -m_objects[i]->velocity;
+    }
 
 
     /** \todo (Part 1) Implement gravitation force
@@ -645,6 +687,10 @@ Mass_spring_viewer::compute_forces()
 
         for (unsigned int i=0; i<body_.particles.size(); ++i)
             body_.particles[i].force += gravitation_vector * particle_mass_;
+
+        for (unsigned int i=0; i<m_objects.size(); ++i){
+            m_objects[i]->force += gravitation_vector * m_objects[i]->mass;
+        }
     }
 
 

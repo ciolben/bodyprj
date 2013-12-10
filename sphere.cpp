@@ -1,6 +1,7 @@
 #include "sphere.h"
 
-Sphere::Sphere(vec3 center, float radius) : m_center(center), m_radius(radius)
+Sphere::Sphere(vec3 center, float radius, float m, bool locked, vec3 v)
+    : Object3D(center, v, m, locked), m_radius(radius)
 {
 }
 
@@ -32,7 +33,7 @@ void Sphere::draw()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
 
-    glTranslatef(m_center.x, m_center.y, m_center.z);
+    glTranslatef(position.x, position.y, position.z);
     glutSolidSphere(m_radius, 50, 50);
 
     glDisable(GL_COLOR_MATERIAL);
@@ -43,7 +44,7 @@ void Sphere::collisionResponse(Particle &particle, const float& particleRadius)
 {
     //basic sphere collision
 
-    vec3 dir = particle.position - m_center;
+    vec3 dir = particle.position - position;
     float penDist = norm(dir) - (m_radius + particleRadius);
 
     dir = normalize(dir);

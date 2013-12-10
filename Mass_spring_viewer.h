@@ -66,10 +66,15 @@ public:
 
     bool moveSelectedParticule(const vec2 &mousePos);
 
+
+
 signals:
     void newInfo(const QString& info);
 
 private :
+
+    void throw_sphere();
+
     //others
     /// is animation on/off?
     bool animate_;
