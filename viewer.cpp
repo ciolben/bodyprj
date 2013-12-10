@@ -34,7 +34,7 @@ void Viewer::draw()
 {
   const float nbSteps = 200.0;
   //  startScreenCoordinatesSystem(true);
-  int coeff = 5;
+  int coeff = 10;
     m_skybox.SkyBox_Draw(0, 0, 0, coeff, coeff, coeff);
   //  stopScreenCoordinatesSystem();
   m_massViewer.draw();
@@ -59,10 +59,8 @@ void Viewer::init()
   camera()->setPosition(qglviewer::Vec(0.0f, 2.0f, 3.0f));
   camera()->setUpVector(qglviewer::Vec(0.0f, 1.0f, 0.0f));
   camera()->lookAt(qglviewer::Vec(0.0f, 0.0f, 0.0f));
-  qDebug() << "znear : " << camera()->zNear();
-  qDebug() << "zfar : " << camera()->zFar();
-  qDebug() << "znearc : " << camera()->zNearCoefficient();
-  qDebug() << "zclipc : " << camera()->zClippingCoefficient();
+  camera()->setSceneRadius(10);
+
 //  camera()->setZNearCoefficient(0.0f);
 //  camera()->setZClippingCoefficient(10.f);
 //  setSceneBoundingBox(0.1, 1000);
