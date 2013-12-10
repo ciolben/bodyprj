@@ -10,7 +10,7 @@ private:
     float m_radius;
 
 public:
-    Sphere(vec3 center, float radius, float m = 0.0f, bool locked = false, vec3 v = vec3(0));
+    Sphere(vec3 center, float radius, float m = 0.0f, bool locked = true, vec3 v = vec3(0));
 
     virtual void draw();
     virtual void collisionResponse(Particle& particle, const float& particleRadius);

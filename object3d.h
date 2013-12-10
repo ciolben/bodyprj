@@ -28,6 +28,9 @@ public:
     float mass;
 
     bool locked;
+
+    vec3  position_t;
+    vec3  velocity_t;
 };
 
 #endif // OBJECT3D_H

@@ -260,7 +260,6 @@ void Mass_spring_system::draw_cloth(int width, int height) const
         glEnable( GL_TEXTURE_2D );
         glBegin( GL_TRIANGLES );
 
-
         for(int h = 1; h < height - 2; ++h)
         {
             for(int w = 1; w < width - 2; ++w) {
@@ -274,6 +273,8 @@ void Mass_spring_system::draw_cloth(int width, int height) const
                 const Particle& p2 = particles[neighbor1];
                 const Particle& p3 = particles[neighbor2];
                 const Particle& p4 = particles[neighbor3];
+
+
 
                 glNormal3f(p1.normal.x, p1.normal.y, p1.normal.z);
                 glVertex3f(p1.position.x, p1.position.y, p1.position.z);

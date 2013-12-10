@@ -421,12 +421,11 @@ void Mass_spring_viewer::draw()
 
 void Mass_spring_viewer::throw_sphere() {
     if(cloth_simulation) {
-        std::cerr << "Tada ! " << std::endl;
         qglviewer::Vec camera_position_tmp = camera->position();
         vec3 camera_position(camera_position_tmp[0], camera_position_tmp[1], camera_position_tmp[2]);
         vec3 throw_direction = -camera_position;
-        throw_direction = normalize(throw_direction);
-        addObject3D(new Sphere(/*camera_position*/vec3(0)
+        throw_direction = normalize(throw_direction) * 400.0f;
+        addObject3D(new Sphere(camera_position
                                 , 0.1f, 0.1f, false
                                 , throw_direction));
     }
@@ -519,6 +518,10 @@ void Mass_spring_viewer::time_integration(float dt)
                     body_.particles[i].velocity += dt * body_.particles[i].force / body_.particles[i].mass;
 
 
+
+
+            // Our spheres :
+
             // update positions
             for (unsigned int i=0; i<m_objects.size(); ++i){
                 if (!m_objects[i]->locked){
@@ -549,6 +552,13 @@ void Mass_spring_viewer::time_integration(float dt)
                 body_.particles[i].velocity_t = body_.particles[i].velocity;
             }
 
+            // Our spheres :
+            for (unsigned int i=0; i<m_objects.size(); ++i)
+            {
+                m_objects[i]->position_t = m_objects[i]->position;
+                m_objects[i]->velocity_t = m_objects[i]->velocity;
+            }
+
             // compute forces at time t
             compute_forces();
 
@@ -562,6 +572,23 @@ void Mass_spring_viewer::time_integration(float dt)
                 if (!body_.particles[i].locked)
                     body_.particles[i].velocity += 0.5*dt*body_.particles[i].force/body_.particles[i].mass;
 
+
+            //our Spheres
+            // update positions to t+h/2
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->position += 0.5*dt*m_objects[i]->velocity;
+                }
+            }
+
+            // update velocities to t+h/2
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->velocity += 0.5*dt*m_objects[i]->force/m_objects[i]->mass;
+                }
+            }
+
+
             // compute forces at time t+h/2
             compute_forces();
 
@@ -574,6 +601,22 @@ void Mass_spring_viewer::time_integration(float dt)
             for (unsigned int i=0; i<body_.particles.size(); ++i)
                 if (!body_.particles[i].locked)
                     body_.particles[i].velocity = body_.particles[i].velocity_t + dt*body_.particles[i].force/body_.particles[i].mass;
+
+
+            //our spheres
+            // update positions to t+h
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->position = m_objects[i]->position_t + dt*m_objects[i]->velocity;
+                }
+            }
+
+            // update velocities to t+h
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->velocity = m_objects[i]->velocity_t + dt*m_objects[i]->force/m_objects[i]->mass;
+                }
+            }
 
             break;
         }
@@ -591,6 +634,15 @@ void Mass_spring_viewer::time_integration(float dt)
                     body_.particles[i].position += (dt * body_.particles[i].velocity +
                                                     dt*dt*0.5f * body_.particles[i].acceleration);
 
+            // our spheres
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->position += (dt * m_objects[i]->velocity +
+                                                    dt*dt*0.5f * m_objects[i]->acceleration);
+                }
+            }
+
+
             // compute new forces
             compute_forces();
 
@@ -604,10 +656,38 @@ void Mass_spring_viewer::time_integration(float dt)
             for (unsigned int i=0; i<body_.particles.size(); ++i)
                 body_.particles[i].acceleration = body_.particles[i].force / body_.particles[i].mass;
 
+
+            //our spheres:
+            // update velocities
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->velocity += dt*0.5 * (m_objects[i]->acceleration +
+                                                             m_objects[i]->force / m_objects[i]->mass);
+                }
+            }
+
+            // remember accelerations
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                m_objects[i]->acceleration = m_objects[i]->force / m_objects[i]->mass;
+            }
+
             break;
         }
     }
 
+
+    for (unsigned int i=0; i<m_objects.size(); ++i){
+        if (!m_objects[i]->locked){
+            vec3 position = m_objects[i]->position;
+            if(position[0] > 10.0f || position[0] < -10.0f
+                    || position[1] > 10.0f || position[1] < -10.0f
+                    || position[2] > 10.0f || position[2] < - 10.0f) {
+                /*removeObject3D(m_objects[i]);
+                i--;*/
+                m_objects[i]->locked = true;
+            }
+        }
+    }
 
     // impulse-based collision handling
     if (collisions_ == Impulse_based)

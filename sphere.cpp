@@ -7,6 +7,7 @@ Sphere::Sphere(vec3 center, float radius, float m, bool locked, vec3 v)
 
 void Sphere::draw()
 {
+
     GLfloat specular_term[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat specular_exponant[] = { 100.0 };
     GLfloat light_position[] = { -1.0, 1.0, 1.0, 0.0 };
@@ -33,8 +34,10 @@ void Sphere::draw()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
 
+    glPushMatrix();
     glTranslatef(position.x, position.y, position.z);
     glutSolidSphere(m_radius, 50, 50);
+    glPopMatrix();
 
     glDisable(GL_COLOR_MATERIAL);
     glDisable(GL_LIGHTING);
