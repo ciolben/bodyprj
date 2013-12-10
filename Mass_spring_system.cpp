@@ -258,7 +258,6 @@ void Mass_spring_system::draw_cloth(int width, int height) const
         glEnable(GL_LIGHT0);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_LIGHTING);
-        glEnable( GL_TEXTURE_2D );
         glBegin( GL_TRIANGLES );
 
         for(int h = 1; h < height - 2; ++h)
