@@ -15,7 +15,7 @@
 
 
 //== INCLUDES =================================================================
-
+#include "Eigen/Eigen"
 #include "Mass_spring_system.h"
 #include "utils/vec2.h"
 #include <vector>
@@ -66,10 +66,15 @@ public:
 
     bool moveSelectedParticule(const vec2 &mousePos);
 
+
+
 signals:
     void newInfo(const QString& info);
 
 private :
+
+    void throw_sphere();
+
     //others
     /// is animation on/off?
     bool animate_;
@@ -118,7 +123,7 @@ private: // parameter settings
     float area_stiffness_;
 
     /// paramters: which time-integration to use
-    enum { Euler, Midpoint, Verlet } integration_;
+    enum { Euler, Midpoint, Verlet, Implicit } integration_;
 
     /// paramters: external force type
     enum { None, Center, Gravitation } external_force_;
