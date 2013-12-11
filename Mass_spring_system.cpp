@@ -260,7 +260,7 @@ void Mass_spring_system::draw_cloth(int width, int height) const
         glEnable(GL_LIGHTING);
         glBegin( GL_TRIANGLES );
 
-        for(int h = 1; h < height - 2; ++h)
+        /*for(int h = 1; h < height - 2; ++h)
         {
             for(int w = 1; w < width - 2; ++w) {
 
@@ -290,6 +290,27 @@ void Mass_spring_system::draw_cloth(int width, int height) const
                 glNormal3f(p3.normal.x, p3.normal.y, p3.normal.z);
                 glVertex3f(p3.position.x, p3.position.y, p3.position.z);
 
+            }
+        }*/
+
+        unsigned int size = triangles_r.size();
+        for(unsigned int i(0); i < size; ++i) {
+            const Triangle_R& triangle = triangles_r[i];
+            const Particle* p1 = triangle.particle0;
+            const Particle* p2 = triangle.particle1;
+            const Particle* p3 = triangle.particle2;
+
+            if(!triangle.spring01->is_broken
+                    && !triangle.spring02->is_broken
+                    && !triangle.spring12->is_broken){
+
+
+                glNormal3f(p1->normal.x, p1->normal.y, p1->normal.z);
+                glVertex3f(p1->position.x, p1->position.y, p1->position.z);
+                glNormal3f(p2->normal.x, p2->normal.y, p2->normal.z);
+                glVertex3f(p2->position.x, p2->position.y, p2->position.z);
+                glNormal3f(p3->normal.x, p3->normal.y, p3->normal.z);
+                glVertex3f(p3->position.x, p3->position.y, p3->position.z);
             }
         }
 

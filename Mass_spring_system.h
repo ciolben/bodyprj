@@ -133,6 +133,22 @@ struct Triangle
     float      rest_area; ///< area in rest state
 };
 
+struct Triangle_R
+{
+    Triangle_R(Particle& p0, Particle& p1, Particle& p2)
+    : particle0(&p0), particle1(&p1), particle2(&p2)
+    {
+    }
+
+    Particle*  particle0;
+    Particle*  particle1;
+    Particle*  particle2;
+
+    Spring* spring01;
+    Spring* spring02;
+    Spring* spring12;
+};
+
 
 
 //== CLASS DEFINITION =========================================================
@@ -173,6 +189,8 @@ public:
     std::vector<Spring>    springs;   ///< vector of all springs
     std::vector<Triangle>  triangles; ///< vector of all triangles
     qglviewer::ManipulatedFrame mf_;
+
+    std::vector<Triangle_R> triangles_r;
 };
 
 

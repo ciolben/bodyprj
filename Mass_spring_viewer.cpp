@@ -52,8 +52,8 @@ Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
 
     cloth_simulation = false;
 
-    cloth_width = 30;
-    cloth_height = 30;
+    cloth_width = 60;
+    cloth_height = 60;
 
     cloth_show_particles = false;
 }
@@ -320,7 +320,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             } else {
                 //for now, just one sphere in the center
                 //if (m_objects.size() == 1) { break; }
-                addObject3D(new Sphere(vec3(0), 0.33f));
+                addObject3D(new Sphere(vec3(0.15f, 0.0f, -0.15f), 0.45f));
             }
             break;
         }
