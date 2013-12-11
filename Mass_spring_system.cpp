@@ -112,24 +112,6 @@ void Mass_spring_system::compute_normals(int width, int height)
 
 void Mass_spring_system::draw(float particle_radius, bool show_forces, int selected) const
 {
-    // draw particles
-    //glEnable(GL_DEPTH_TEST);
-  //  glEnable(GL_LIGHTING);
-    //projection
-//    glMatrixMode(GL_PROJECTION);
-//    glLoadIdentity();
-//    gluPerspective(60, 1, 0.1, 100);
-
-    //camera
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//    gluLookAt(0,0,5 ,0,0,0 ,0,0,1);
-
-   // glPushMatrix();
-
-//    glShadeModel(GL_SMOOTH);
-//    glEnable(GL_COLOR_MATERIAL);
-
 
     GLfloat specular_term[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat specular_exponant[] = { 100.0 };
@@ -232,7 +214,7 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
 
 void Mass_spring_system::draw_cloth(int width, int height) const
 {
-        GLfloat specular_term[] = { 0.2, 0.2, 0.6, 1.0 };
+        GLfloat specular_term[] = { 0.1, 0.1, 0.1, 1.0 };
         GLfloat specular_exponant[] = { 10.0 };
         GLfloat light_position[] = { -1.0, 1.0, 1.0, 0.0 };
         GLfloat light_term[] = { 0.8, 0.8, 0.8 };
@@ -249,8 +231,8 @@ void Mass_spring_system::draw_cloth(int width, int height) const
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_term);
 
 
-        GLfloat ambient_material_term[] = { 0.2, 0.2, 0.6, 1.0 };
-        GLfloat diffuse_material_term[] = { 0.2, 0.2, 0.6, 1.0 };
+        GLfloat ambient_material_term[] = { 0.1, 0.1, 0.6, /*0.6, 0.1, 0.1,*/ 1.0 };
+        GLfloat diffuse_material_term[] = { 0.1, 0.1, 0.6, /*0.6, 0.1, 0.1,*/ 1.0 };
 
         glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material_term);
         glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material_term);
@@ -259,39 +241,6 @@ void Mass_spring_system::draw_cloth(int width, int height) const
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_LIGHTING);
         glBegin( GL_TRIANGLES );
-
-        /*for(int h = 1; h < height - 2; ++h)
-        {
-            for(int w = 1; w < width - 2; ++w) {
-
-                int currentIndex = w + width * h;
-                int neighbor1 = w + 1 + width * h;
-                int neighbor2 = w + width * (h + 1);
-                int neighbor3 = w + 1 + width * (h + 1);
-
-                const Particle& p1 = particles[currentIndex];
-                const Particle& p2 = particles[neighbor1];
-                const Particle& p3 = particles[neighbor2];
-                const Particle& p4 = particles[neighbor3];
-
-
-
-                glNormal3f(p1.normal.x, p1.normal.y, p1.normal.z);
-                glVertex3f(p1.position.x, p1.position.y, p1.position.z);
-                glNormal3f(p2.normal.x, p2.normal.y, p2.normal.z);
-                glVertex3f(p2.position.x, p2.position.y, p2.position.z);
-                glNormal3f(p4.normal.x, p4.normal.y, p4.normal.z);
-                glVertex3f(p4.position.x, p4.position.y, p4.position.z);
-
-                glNormal3f(p1.normal.x, p1.normal.y, p1.normal.z);
-                glVertex3f(p1.position.x, p1.position.y, p1.position.z);
-                glNormal3f(p4.normal.x, p4.normal.y, p4.normal.z);
-                glVertex3f(p4.position.x, p4.position.y, p4.position.z);
-                glNormal3f(p3.normal.x, p3.normal.y, p3.normal.z);
-                glVertex3f(p3.position.x, p3.position.y, p3.position.z);
-
-            }
-        }*/
 
         unsigned int size = triangles_r.size();
         for(unsigned int i(0); i < size; ++i) {

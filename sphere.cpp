@@ -14,8 +14,8 @@ void Sphere::draw()
     GLfloat light_term[] = { 0.8, 0.8, 0.8 };
     GLfloat ambient_term[] = { 0.3, 0.3, 0.3, 1.0 };
 
-    GLfloat ambient_material_term[] = { 0.6, 0.2, 0.2, 1.0 };
-    GLfloat diffuse_material_term[] = { 0.6, 0.2, 0.2, 1.0 };
+    GLfloat ambient_material_term[] = { 0.6, 0.6, 0.6, 1.0 };
+    GLfloat diffuse_material_term[] = { 0.6, 0.6, 0.6, 1.0 };
 
     glShadeModel(GL_SMOOTH);
 
