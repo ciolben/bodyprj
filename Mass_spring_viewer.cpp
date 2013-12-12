@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "Cloth.h"
+#include <QDebug>
 
 //== IMPLEMENTATION ==========================================================
 
@@ -52,8 +53,8 @@ Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
 
     cloth_simulation = false;
 
-    cloth_width = 60;
-    cloth_height = 60;
+    cloth_width = 10;
+    cloth_height = 10;
 
     cloth_show_particles = false;
 }
@@ -87,7 +88,7 @@ void Mass_spring_viewer::setSelected(int selected)
 
 bool Mass_spring_viewer::moveSelectedParticule(const vec2 &mousePos)
 {
-    if (selected_ == -1) { return false; }
+    if (selected_ < 0) { return false; }
     Particle& p = body_.particles.at(selected_);
 
     QPoint pointp(mousePos.data()[0], mousePos.data()[1]);
@@ -678,38 +679,94 @@ void Mass_spring_viewer::time_integration(float dt)
 
         case Implicit:
         {
+
         compute_forces();
-            //Jacobian
+//source : https://code.google.com/p/opencloth/source/browse/trunk/OpenCloth_ImplicitEuler/OpenCloth_ImplicitEuler/main.cpp
+            const float EPS = 0.001f;
+            const float EPS2 = EPS*EPS;
+            const int i_max = 10 ;
+
+            //init
+            using namespace Eigen;
+            Matrix3f I = Matrix<float, 3, 3>::Identity();
+
             for(unsigned int i(0); i<body_.springs.size(); ++i ){
                 Spring& spring = body_.springs[i];
-                Eigen::Vector3f pos0(spring.particle0->position[0], spring.particle0->position[1], spring.particle0->position[2]);
-                Eigen::Vector3f pos1(spring.particle1->position[0], spring.particle1->position[1], spring.particle1->position[2]);
-                Eigen::Vector3f dx = pos0 - pos1;
-                Eigen::Matrix3f dxtdx, I3x3;
-                dxtdx = dx * dx.transpose();
-                I3x3 = Eigen::Matrix3f::Identity(3,3);
+                Particle& p0 = *spring.particle0;
+                Particle& p1 = *spring.particle1;
+                Particle& p = p1; //changer ici pr voir différence
+                if (p.locked) { continue; }
+                Vector3f dx((p0.position - p1.position).data());
+//              Vector3f dv((p0.velocity - p1.velocity).data());
 
-                float l = std::sqrt(dx.dot(dx));
-                if( l != 0 ) l = 1.0/l;
+                float dist = dx.norm();
 
-                dxtdx = dxtdx*(l*l);
+                //fill Jacobian
+                float l = spring.rest_length / dist;
+                Matrix3f Js = spring_stiffness_ *
+                             (-I + (l * (I -
+                                         ((dx * dx.transpose()) / (dist * dist)))));
 
-                spring.Jx = (dxtdx + (I3x3-dxtdx)*(1-spring.rest_length*l))* spring_stiffness_;
-                spring.Jv = Eigen::Matrix3f::Identity(3,3);
-                spring.Jv *= spring_damping_;
+                Matrix3f M = particle_mass_ * I;
+                Matrix3f A = M - (((dt * dt) * Matrix<float, 3, 3>::Ones())  - Js);
+
+                Vector3f b = (M * Vector3f(p.velocity.data())) + (dt * Vector3f(p.force.data()));
+
+                //solve conjugate gradient
+                float it =0;
+                Vector3f x; x[0] = x[1] = x[2] = 0.f;
+//                Vector3f x(p.velocity.data());
+                Vector3f r = b - A * x;
+                Vector3f d = r;
+                Vector3f q; q[0] = q[1] = q[2] = 0.f;
+                float alpha = 0;
+                float beta  = 0;
+                float delta_old = 0;
+                float delta_new = r.dot(r);
+                while(it < i_max && delta_new > EPS2) {
+                       q = A*d;
+                       alpha = delta_new / d.dot(q);
+                       x = x + alpha*d;
+                       r = r - alpha*q;
+                       delta_old = delta_new;
+                       delta_new = r.dot(r);
+                       beta = delta_new / delta_old;
+                       d = r + beta * d;
+                       ++it;
+                }
+
+                //update velocity
+               // if(i==0)qDebug("before : %f,%f,%f", p.velocity[0], p.velocity[1], p.velocity[2]);
+                p.velocity = vec3(x[0], x[1], x[2]);
+               // if(i==0)qDebug("after : %f,%f,%f", p.velocity[0], p.velocity[1], p.velocity[2]);
+
+                p.position += dt * p.velocity;
+
+        //                Matrix3f dxtdx, I3x3;
+        ////                dxtdx = dx * dx.transpose();
+        //                I3x3 = Eigen::Matrix3f::Identity(3,3);
+
+        ////                float l = std::sqrt(dx.dot(dx));
+        //                if( l != 0 ) l = 1.0/l;
+
+        //                dxtdx = dxtdx*(l*l);
+
+        //                spring.Jx = (dxtdx + (I3x3-dxtdx)*(1-spring.rest_length*l))* spring_stiffness_;
+        //                spring.Jv = Eigen::Matrix3f::Identity(3,3);
+        //                spring.Jv *= spring_damping_;
 
 
 
-                // calculations for A*v(t+h) = b, resolve for v(t+h)
-                Eigen::Matrix3f A = Eigen::Matrix3f::Identity(3,3) - (dt/particle_mass_)*spring.Jv - (dt*dt/particle_mass_)*spring.Jx;
-                Eigen::Vector3f v0(spring.particle0->velocity[0], spring.particle0->velocity[1], spring.particle0->velocity[2]);
-                Eigen::Vector3f v1(spring.particle1->velocity[0], spring.particle1->velocity[1], spring.particle1->velocity[2]);
+        //                // calculations for A*v(t+h) = b, resolve for v(t+h)
+        //                Eigen::Matrix3f A = Eigen::Matrix3f::Identity(3,3) - (dt/particle_mass_)*spring.Jv - (dt*dt/particle_mass_)*spring.Jx;
+        //                Eigen::Vector3f v0(spring.particle0->velocity[0], spring.particle0->velocity[1], spring.particle0->velocity[2]);
+        //                Eigen::Vector3f v1(spring.particle1->velocity[0], spring.particle1->velocity[1], spring.particle1->velocity[2]);
 
-                Eigen::Vector3f f0(spring.particle0->force[0], spring.particle0->force[1], spring.particle0->force[2]);
-                Eigen::Vector3f f1(spring.particle1->force[0], spring.particle1->force[1], spring.particle1->force[2]);
+        //                Eigen::Vector3f f0(spring.particle0->force[0], spring.particle0->force[1], spring.particle0->force[2]);
+        //                Eigen::Vector3f f1(spring.particle1->force[0], spring.particle1->force[1], spring.particle1->force[2]);
 
-                Eigen::Vector3f b0 = v0 + (dt/particle_mass_)*f0 - (dt/particle_mass_)*spring.Jv*v0;
-                Eigen::Vector3f b1 = v1 + (dt/particle_mass_)*f1 - (dt/particle_mass_)*spring.Jv*v1;
+        //                Eigen::Vector3f b0 = v0 + (dt/particle_mass_)*f0 - (dt/particle_mass_)*spring.Jv*v0;
+        //                Eigen::Vector3f b1 = v1 + (dt/particle_mass_)*f1 - (dt/particle_mass_)*spring.Jv*v1;
 
                 /*if(symmetric_positive()){
                     cholesky() (llt in <Eigen/Cholesky>)
@@ -757,6 +814,9 @@ void Mass_spring_viewer::time_integration(float dt)
     // test spring state
     for (unsigned int i=0; i<body_.springs.size(); ++i) {
         body_.springs[i].break_test();
+//        if (body_.springs[i].is_broken) {
+//            body_.springs.erase(body_.springs.begin() + i);
+//        }
     }
 
     //glutPostRedisplay();

@@ -214,6 +214,7 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
 
 void Mass_spring_system::draw_cloth(int width, int height) const
 {
+    //tissue values
         GLfloat specular_term[] = { 0.1, 0.1, 0.1, 1.0 };
         GLfloat specular_exponant[] = { 10.0 };
         GLfloat light_position[] = { -1.0, 1.0, 1.0, 0.0 };

@@ -107,7 +107,7 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
             unsigned int size = body_->springs.size();
 
             //p1 - p2
-            //      |
+            //   \  |
             //     p4
             Triangle_R triangle1(p1, p2, p4);
 
