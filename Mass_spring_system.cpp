@@ -36,14 +36,15 @@ void Mass_spring_system::clear()
 
 void Mass_spring_system::add_particle(vec3 position, vec3 velocity, float mass, bool locked)
 {
-    particles.push_back( Particle(position, velocity, mass, locked) );
+    Particle p(position, velocity, mass, locked);
+    p.index = particles.size();
+    particles.push_back( p );
 }
 
 void Mass_spring_system::add_particle(vec2 position, vec2 velocity, float mass, bool locked)
 {
-    particles.push_back( Particle(
-                             vec3(position[0], position[1])
-                            , vec3(velocity[0], velocity[1]), mass, locked) );
+    Particle p(vec3(position[0], position[1]), vec3(velocity[0], velocity[1]), mass, locked);
+    particles.push_back( p );
 }
 //-----------------------------------------------------------------------------
 

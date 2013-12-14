@@ -18,6 +18,7 @@
 #include "Eigen/Eigen"
 #include "Mass_spring_system.h"
 #include "utils/vec2.h"
+#include "Cloth.h"
 #include <vector>
 
 #include <QKeyEvent>
@@ -171,6 +172,8 @@ private: // simulation data
 
     /// Objects for collision
     std::vector<Object3D*> m_objects;
+
+    Cloth cloth;
 };
 
 

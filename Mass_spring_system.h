@@ -15,6 +15,8 @@
 
 
 //== INCLUDES =================================================================
+#include "Eigen/Eigen"
+#include "Eigen/SparseCore"
 #include "utils/vec3.h"
 #include "utils/vec2.h"
 #include <qgl.h>
@@ -52,6 +54,8 @@ struct Particle
     vec3  acceleration; ///< used for Verlet integration
 
     vec3 normal;
+
+    int index;
 };
 
 
