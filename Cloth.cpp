@@ -1,5 +1,6 @@
 #include "Cloth.h"
 #include <Eigen/IterativeLinearSolvers>
+#include <QDebug>
 
 Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system *body_)
     :body_(body_)
@@ -146,11 +147,13 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
 
     int nb_particules = body_->particles.size();
     M = MatrixXf(3 * nb_particules, 3 * nb_particules);
+    M = 0.0 * M;
     for (int i(0); i < 3 * nb_particules; ++i) {
         M(i, i) = cloth_particle_mass;
     }
 
     this->x = VectorXf(3 * nb_particules);
+    this->x = 0.f * this->x;
     for(uint i = 0; i < body_->particles.size(); ++i) {
         float* data = body_->particles[i].position.data();
         this->x[i*3] = data[0];
@@ -158,12 +161,15 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
         this->x[i*3 + 2] = data[2];
     }
     this->v = VectorXf(3 * nb_particules);
+    this->v = 0.0 * v;
     this->f = VectorXf(3 * nb_particules);
+    this->f = 0.0 * f;
 }
 
 void Cloth::integrateImplicit(const float& dt, const float& ks) {
     int size = body_->particles.size();
     MatrixXf K = MatrixXf(3 * size, 3 * size);
+    K = 0.0 * K;
     Matrix3f I = Matrix3f::Identity();
 
     MatrixXf A = MatrixXf(3 * size, 3 * size);
@@ -184,9 +190,9 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
         double dist = dx.norm();
         double l = spring.rest_length / dist;
 
-        Matrix3f Kii = ks *
-                     (-I + (l * (I -
-                                 ((dx * dx.transpose()) / (dist * dist)))));
+            Matrix3f Kii = ks *
+                         (-I + (l * (I -
+                                     ((dx * dx.transpose()) / (dist * dist)))));
 
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
@@ -211,7 +217,7 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
         int id = p.index;
 
         p.position += dt * vec3(v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
-        qDebug("pos : %f,%f,%f", v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
+//        qDebug("vel : %f,%f,%f", v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
     }
 }
 
