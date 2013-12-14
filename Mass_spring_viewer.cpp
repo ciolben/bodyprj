@@ -682,100 +682,120 @@ void Mass_spring_viewer::time_integration(float dt)
 
         compute_forces();
 //source : https://code.google.com/p/opencloth/source/browse/trunk/OpenCloth_ImplicitEuler/OpenCloth_ImplicitEuler/main.cpp
-            const float EPS = 0.001f;
+            const float EPS = 0.01f;
             const float EPS2 = EPS*EPS;
-            const int i_max = 10 ;
+            const int i_max = 20 ;
 
             //init
             using namespace Eigen;
-            Matrix3f I = Matrix<float, 3, 3>::Identity();
+            typedef double Type;
+            typedef Matrix3d Matrix3;
+            typedef Vector3d Vector3;
+
+            Matrix3 I = Matrix<Type, 3, 3>::Identity();
 
             for(unsigned int i(0); i<body_.springs.size(); ++i ){
                 Spring& spring = body_.springs[i];
-                Particle& p0 = *spring.particle0;
-                Particle& p1 = *spring.particle1;
-                Particle& p = p1; //changer ici pr voir différence
-                if (p.locked) { continue; }
-                Vector3f dx((p0.position - p1.position).data());
-//              Vector3f dv((p0.velocity - p1.velocity).data());
+                Particle* p0 = spring.particle0;
+                Particle* p1 = spring.particle1;
+                std::vector<Particle*> ps;
+                if (!p0->locked) { ps.push_back(p0); }
+                if (!p1->locked) { ps.push_back(p1); }
+                if (p0->locked && p1->locked) { continue; }
 
-                float dist = dx.norm();
+                vec3 dxf = p0->position - p1->position;
+                Vector3 dx;
+                dx[0] = std::abs(dxf[0]) < 0.0001f ? 0 : dxf[0];
+                dx[1] = std::abs(dxf[1]) < 0.0001f ? 0 : dxf[1];
+                dx[2] = std::abs(dxf[2]) < 0.0001f ? 0 : dxf[2];
+
+                Type dist = dx.norm();
 
                 //fill Jacobian
-                float l = spring.rest_length / dist;
-                Matrix3f Js = spring_stiffness_ *
+                Type l = spring.rest_length / dist;
+
+//                qDebug() << "l : " << l << " , dist : " << dist;
+//                qDebug() << "dx*dxtr : ";
+//                Matrix3 TT = dx * dx.transpose();
+//                qDebug() << TT(0) << "," << TT(1) << "," << TT(2);
+//                qDebug() << TT(3) << "," << TT(4) << "," << TT(5);
+//                qDebug() << TT(6) << "," << TT(7) << "," << TT(8);
+//                qDebug() << "************************************";
+
+                Matrix3 Js = (Type) spring_stiffness_ *
                              (-I + (l * (I -
                                          ((dx * dx.transpose()) / (dist * dist)))));
 
-                Matrix3f M = particle_mass_ * I;
-                Matrix3f A = M - (((dt * dt) * Matrix<float, 3, 3>::Ones())  - Js);
+//                qDebug() << "ops : " << -I(0) <<"+"<<l<<"*"<<I(0)<<"-"<<TT(0)<<"/"<<(dist*dist);
+//                qDebug() << "res : " << -I(0) <<"+"<<l<<"*"<<I(0)<<"-"<<TT(0)/(dist*dist);
+//                qDebug() << "res : " << -I(0) <<"+"<<l<<"*"<<I(0)-TT(0)/(dist*dist);
+//                qDebug() << "res : " << -I(0) <<"+"<<l*I(0)-TT(0)/(dist*dist);
+//                qDebug() << "res : " << -I(0)+l*I(0)-TT(0)/(dist*dist);
 
-                Vector3f b = (M * Vector3f(p.velocity.data())) + (dt * Vector3f(p.force.data()));
+                Matrix3 M = (Type) particle_mass_ * I;
+                Matrix3 A = M - (((Type)(dt * dt) * I)  - Js);
 
-                //solve conjugate gradient
-                float it =0;
-                Vector3f x; x[0] = x[1] = x[2] = 0.f;
-//                Vector3f x(p.velocity.data());
-                Vector3f r = b - A * x;
-                Vector3f d = r;
-                Vector3f q; q[0] = q[1] = q[2] = 0.f;
-                float alpha = 0;
-                float beta  = 0;
-                float delta_old = 0;
-                float delta_new = r.dot(r);
-                while(it < i_max && delta_new > EPS2) {
-                       q = A*d;
-                       alpha = delta_new / d.dot(q);
-                       x = x + alpha*d;
-                       r = r - alpha*q;
-                       delta_old = delta_new;
-                       delta_new = r.dot(r);
-                       beta = delta_new / delta_old;
-                       d = r + beta * d;
-                       ++it;
+//                qDebug() << Js(0) << "," << Js(1) << "," << Js(2);
+//                qDebug() << Js(3) << "," << Js(4) << "," << Js(5);
+//                qDebug() << Js(6) << "," << Js(7) << "," << Js(8);
+//                qDebug() << "---------------------------------";
+//                qDebug() << A(0) << "," << A(1) << "," << A(2);
+//                qDebug() << A(3) << "," << A(4) << "," << A(5);
+//                qDebug() << A(6) << "," << A(7) << "," << A(8);
+//                qDebug() << "---------------------------------";
+
+                foreach (Particle* pp, ps) {
+                    Particle& p = *pp;
+
+
+                    //mv
+                    float* vf = p.velocity.data();
+                    float* ff = p.force.data();
+                    Vector3 b = (M * Vector3(vf[0], vf[1], vf[2]))
+                            + (dt * Vector3(ff[0], ff[1], ff[2]));
+
+//                    int index = 1;
+//                    qDebug() << M(3*index + index) <<"*"<< p.velocity.data()[index] <<"+" << dt <<"*"<< p.force.data()[index];
+//                    qDebug() << M(3*index + index) <<"*"<< p.velocity.data()[index] <<"+" << dt*p.force.data()[index];
+//                    qDebug() << M(3*index + index) * p.velocity.data()[index] <<"+" << dt*p.force.data()[index];
+//                    qDebug() << M(3*index + index)*p.velocity.data()[index] + dt * p.force.data()[index];
+//                    qDebug() << "b : " << b[0] << ", " << b[1] << ", " << b[2];
+
+                    //solve conjugate gradient
+                    Type it =0;
+                    Vector3 x; x[0] = x[1] = x[2] = 0.f;
+//                    Vector3 x(p.velocity.data());
+                    Vector3 r = b - A * x;
+
+//                    qDebug() << "r : " << r[0] << ", " << r[1] << ", " << r[2];
+
+                    Vector3 d = r;
+                    Vector3 q;
+                    double alpha = 0;
+                    double beta  = 0;
+                    double delta_old = 0;
+                    double delta_new = r.dot(r);
+                    while(it < i_max && delta_new > EPS2) {
+                           q = A*d;
+                           alpha = delta_new / d.dot(q);
+                           x = x + alpha*d;
+                           r = r - alpha*q;
+                           delta_old = delta_new;
+                           delta_new = r.dot(r);
+                           beta = delta_new / delta_old;
+                           d = r + beta * d;
+                           ++it;
+                    }
+
+
+                    //update velocity
+                    p.velocity = vec3(x[0], x[1], x[2]);
+//                   qDebug("after : %f,%f,%f", p.velocity[0], p.velocity[1], p.velocity[2]);
+
+                    p.position += dt * p.velocity;
+//                    qDebug("positon : %f,%f,%f", p.position[0], p.position[1], p.position[2]);
+
                 }
-
-                //update velocity
-               // if(i==0)qDebug("before : %f,%f,%f", p.velocity[0], p.velocity[1], p.velocity[2]);
-                p.velocity = vec3(x[0], x[1], x[2]);
-               // if(i==0)qDebug("after : %f,%f,%f", p.velocity[0], p.velocity[1], p.velocity[2]);
-
-                p.position += dt * p.velocity;
-
-        //                Matrix3f dxtdx, I3x3;
-        ////                dxtdx = dx * dx.transpose();
-        //                I3x3 = Eigen::Matrix3f::Identity(3,3);
-
-        ////                float l = std::sqrt(dx.dot(dx));
-        //                if( l != 0 ) l = 1.0/l;
-
-        //                dxtdx = dxtdx*(l*l);
-
-        //                spring.Jx = (dxtdx + (I3x3-dxtdx)*(1-spring.rest_length*l))* spring_stiffness_;
-        //                spring.Jv = Eigen::Matrix3f::Identity(3,3);
-        //                spring.Jv *= spring_damping_;
-
-
-
-        //                // calculations for A*v(t+h) = b, resolve for v(t+h)
-        //                Eigen::Matrix3f A = Eigen::Matrix3f::Identity(3,3) - (dt/particle_mass_)*spring.Jv - (dt*dt/particle_mass_)*spring.Jx;
-        //                Eigen::Vector3f v0(spring.particle0->velocity[0], spring.particle0->velocity[1], spring.particle0->velocity[2]);
-        //                Eigen::Vector3f v1(spring.particle1->velocity[0], spring.particle1->velocity[1], spring.particle1->velocity[2]);
-
-        //                Eigen::Vector3f f0(spring.particle0->force[0], spring.particle0->force[1], spring.particle0->force[2]);
-        //                Eigen::Vector3f f1(spring.particle1->force[0], spring.particle1->force[1], spring.particle1->force[2]);
-
-        //                Eigen::Vector3f b0 = v0 + (dt/particle_mass_)*f0 - (dt/particle_mass_)*spring.Jv*v0;
-        //                Eigen::Vector3f b1 = v1 + (dt/particle_mass_)*f1 - (dt/particle_mass_)*spring.Jv*v1;
-
-                /*if(symmetric_positive()){
-                    cholesky() (llt in <Eigen/Cholesky>)
-                } else {
-                    LU() (<Eigen/LU>)
-                }*/
-
-
-                //x(t+h) = x(t) + h*v(t+h);
             }
 
 

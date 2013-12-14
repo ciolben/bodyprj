@@ -15,7 +15,6 @@
 
 
 //== INCLUDES =================================================================
-#include "Eigen/Eigen"
 #include "utils/vec3.h"
 #include "utils/vec2.h"
 #include <qgl.h>
@@ -96,9 +95,6 @@ public:
     float maximum_length;
     bool is_broken;
     bool breakable;
-
-    Eigen::Matrix3f Jx;
-    Eigen::Matrix3f Jv;
 };
 
 
