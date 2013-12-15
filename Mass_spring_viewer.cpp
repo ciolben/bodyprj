@@ -917,6 +917,15 @@ Mass_spring_viewer::compute_forces()
             p2.force += f2;
         }
     }
+
+    //clear forces on locked particules
+    vec3 nullforce(0);
+    for (unsigned int i=0; i<body_.particles.size(); ++i)
+    {
+        if (body_.particles.at(i).locked) {
+            body_.particles.at(i).force = nullforce;
+        }
+    }
 }
 
 

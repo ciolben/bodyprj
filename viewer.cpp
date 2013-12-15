@@ -47,6 +47,9 @@ void Viewer::init()
 //  restoreStateFromFile();
   setAxisIsDrawn(false);
 
+  //display color
+  setForegroundColor(QColor::fromHsv(120, 255, 190));
+
   //init mouse
   setMouseBinding(Qt::RightButton, CAMERA, ROTATE);
   setMouseBinding(Qt::LeftButton, SELECT);
