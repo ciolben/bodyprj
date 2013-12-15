@@ -679,26 +679,47 @@ void Mass_spring_viewer::time_integration(float dt)
 
         case Implicit:
         {
+            //Only for the cloth
+            if (cloth_simulation) {
+                compute_forces();
+                cloth.updateForces();
+                cloth.integrateImplicit(dt, spring_stiffness_);
+            }
 
-            compute_forces();
-            cloth.updateForces();
-            cloth.integrateImplicit(dt, spring_stiffness_);
+            //For updating objects, it uses explicit euler
+            // update positions
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->position += dt * m_objects[i]->velocity;
+                }
+            }
+
+            // update velocities
+            for (unsigned int i=0; i<m_objects.size(); ++i){
+                if (!m_objects[i]->locked){
+                    m_objects[i]->velocity += dt * m_objects[i]->force / m_objects[i]->mass;
+                }
+            }
+
             break;
+
         }
     }
 
 
+    std::vector<Object3D*> objectsToRemove;
     for (unsigned int i=0; i<m_objects.size(); ++i){
         if (!m_objects[i]->locked){
             vec3 position = m_objects[i]->position;
             if(position[0] > 10.0f || position[0] < -10.0f
                     || position[1] > 10.0f || position[1] < -10.0f
                     || position[2] > 10.0f || position[2] < - 10.0f) {
-                /*removeObject3D(m_objects[i]);
-                i--;*/
-                m_objects[i]->locked = true;
+                objectsToRemove.push_back(m_objects[i]);
             }
         }
+    }
+    for (uint i = 0; i < objectsToRemove.size(); ++i) {
+        removeObject3D(m_objects[i]);
     }
 
     // impulse-based collision handling

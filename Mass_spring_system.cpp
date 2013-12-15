@@ -255,7 +255,6 @@ void Mass_spring_system::draw_cloth(int width, int height) const
                     && !triangle.spring02->is_broken
                     && !triangle.spring12->is_broken){
 
-
                 glNormal3f(p1->normal.x, p1->normal.y, p1->normal.z);
                 glVertex3f(p1->position.x, p1->position.y, p1->position.z);
                 glNormal3f(p2->normal.x, p2->normal.y, p2->normal.z);
@@ -264,8 +263,6 @@ void Mass_spring_system::draw_cloth(int width, int height) const
                 glVertex3f(p3->position.x, p3->position.y, p3->position.z);
             }
         }
-
-
 
         glEnd();
         glDisable(GL_LIGHTING);

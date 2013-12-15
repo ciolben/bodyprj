@@ -118,8 +118,6 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
             //p3 - p4
             Triangle_R triangle2(p1, p4, p3);
 
-
-
             for(unsigned int i(0); i < size; ++i) {
                 Spring& spring = body_->springs[i];
                 Particle* sp0 = spring.particle0;
@@ -174,7 +172,7 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
 
     MatrixXf A = MatrixXf(3 * size, 3 * size);
     VectorXf b = VectorXf(3 * size);
-
+int ks2 = 0.1;
     for(unsigned int i(0); i<body_->springs.size(); ++i ){
         Spring& spring = body_->springs[i];
         Particle* p0 = spring.particle0;
@@ -190,9 +188,9 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
         double dist = dx.norm();
         double l = spring.rest_length / dist;
 
-            Matrix3f Kii = ks *
-                         (-I + (l * (I -
-                                     ((dx * dx.transpose()) / (dist * dist)))));
+        Matrix3f Kii = ks2 *
+                     (-I + (l * (I -
+                                 ((dx * dx.transpose()) / (dist * dist)))));
 
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
@@ -216,8 +214,10 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
         Particle& p = body_->particles[i];
         int id = p.index;
 
-        p.position += dt * vec3(v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
-//        qDebug("vel : %f,%f,%f", v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
+        if (!p.locked) {
+            p.position += dt * vec3(v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
+    //        qDebug("vel : %f,%f,%f", v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
+        }
     }
 }
 
