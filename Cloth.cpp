@@ -184,9 +184,14 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
     //resolve the system
     A = M - ((dt * dt) * K);
     b = (M * v) + (dt * f);
-//    ConjugateGradient<SparseMatrix<float> > conjGrad;
-    VectorXf v_new = A.ldlt().solve(b);
-//    VectorXf x = conjGrad.solve(b);
+
+    //VectorXf v_new = A.ldlt().solve(b);
+
+    SparseMatrix<float> A_sparse = A.sparseView();
+    ConjugateGradient<SparseMatrix<float> > conjGrad;
+    conjGrad.compute(A_sparse);
+    VectorXf v_new = conjGrad.solve(b);
+
 
     for (int i(0); i < size; ++i) {
         Particle& p = body_->particles[i];
