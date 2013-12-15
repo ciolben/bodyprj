@@ -1,10 +1,10 @@
 #include "Cloth.h"
-#include <Eigen/IterativeLinearSolvers>
+#include "Eigen/IterativeLinearSolvers"
 #include <QDebug>
 
 Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system *body_)
     :body_(body_)
-    , cloth_particle_mass(0.001f)
+    , cloth_particle_mass(0.1f /*0.001f*/), implicit_integration_data_initialized(false)
 {
     bool breakable = true;
 
@@ -27,7 +27,7 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
     for(double zCounter(0); zCounter < grid_height; ++zCounter) {
         for(double xCounter(0); xCounter < grid_width; ++xCounter) {
             body_->add_particle( vec3(x, cloth_y_position, z),
-                                vec3(), cloth_particle_mass, /*false*/ zCounter == 0 );
+                                vec3(), cloth_particle_mass, /*zCounter == 0*/ false);
             x += stepX;
         }
 
@@ -142,26 +142,6 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
             body_->triangles_r.push_back(triangle2);
         }
     }
-
-    int nb_particules = body_->particles.size();
-    M = MatrixXf(3 * nb_particules, 3 * nb_particules);
-    M = 0.0 * M;
-    for (int i(0); i < 3 * nb_particules; ++i) {
-        M(i, i) = cloth_particle_mass;
-    }
-
-    this->x = VectorXf(3 * nb_particules);
-    this->x = 0.f * this->x;
-    for(uint i = 0; i < body_->particles.size(); ++i) {
-        float* data = body_->particles[i].position.data();
-        this->x[i*3] = data[0];
-        this->x[i*3 + 1] = data[1];
-        this->x[i*3 + 2] = data[2];
-    }
-    this->v = VectorXf(3 * nb_particules);
-    this->v = 0.0 * v;
-    this->f = VectorXf(3 * nb_particules);
-    this->f = 0.0 * f;
 }
 
 void Cloth::integrateImplicit(const float& dt, const float& ks) {
@@ -172,7 +152,7 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
 
     MatrixXf A = MatrixXf(3 * size, 3 * size);
     VectorXf b = VectorXf(3 * size);
-int ks2 = 0.1;
+
     for(unsigned int i(0); i<body_->springs.size(); ++i ){
         Spring& spring = body_->springs[i];
         Particle* p0 = spring.particle0;
@@ -181,23 +161,21 @@ int ks2 = 0.1;
         int i_id = p1->index;
         int j_id = p0->index;
         Vector3f dx(dxf.data());
-//        dx[0] = std::abs(dxf[0]) < 0.0001f ? 0 : dxf[0];
-//        dx[1] = std::abs(dxf[1]) < 0.0001f ? 0 : dxf[1];
-//        dx[2] = std::abs(dxf[2]) < 0.0001f ? 0 : dxf[2];
 
         double dist = dx.norm();
         double l = spring.rest_length / dist;
 
-        Matrix3f Kii = ks2 *
+        Matrix3f Kii = ks *
                      (-I + (l * (I -
                                  ((dx * dx.transpose()) / (dist * dist)))));
 
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
-                K(i_id * 3 + k,i_id * 3 + l) = Kii(k, l);
-                K(j_id * 3 + k,j_id * 3 + l) = Kii(k, l);
-                K(j_id * 3 + k,i_id * 3 + l) = -Kii(k, l);
-                K(i_id * 3 + k,j_id * 3 + l) = -Kii(k, l);
+                K(i_id * 3 + k,i_id * 3 + l) += Kii(k, l);
+                K(j_id * 3 + k,j_id * 3 + l) += Kii(k, l);
+
+                K(j_id * 3 + k,i_id * 3 + l) -= Kii(k, l);
+                K(i_id * 3 + k,j_id * 3 + l) -= Kii(k, l);
             }
         }
 
@@ -207,7 +185,7 @@ int ks2 = 0.1;
     A = M - ((dt * dt) * K);
     b = (M * v) + (dt * f);
 //    ConjugateGradient<SparseMatrix<float> > conjGrad;
-    v = A.ldlt().solve(b);
+    VectorXf v_new = A.ldlt().solve(b);
 //    VectorXf x = conjGrad.solve(b);
 
     for (int i(0); i < size; ++i) {
@@ -215,13 +193,14 @@ int ks2 = 0.1;
         int id = p.index;
 
         if (!p.locked) {
-            p.position += dt * vec3(v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
+            p.position += dt * vec3(v_new[id * 3], v_new[id * 3 + 1], v_new[id * 3 + 2]);
+            p.velocity = vec3(v_new[id * 3], v_new[id * 3 + 1], v_new[id * 3 + 2]);
     //        qDebug("vel : %f,%f,%f", v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
         }
     }
 }
 
-void Cloth::updateForces() {
+void Cloth::updateData() {
     for (int i(0); i < body_->particles.size(); ++i) {
         Particle& p = body_->particles[i];
         vec3 force = p.force;
@@ -229,5 +208,36 @@ void Cloth::updateForces() {
         f[index] = force.x;
         f[index+1] = force.y;
         f[index+2] = force.z;
+		
+		v[index] = p.velocity.x;
+		v[index+1] = p.velocity.y;
+		v[index+2] = p.velocity.z;
+    }
+}
+
+void Cloth::implicit_initialization() {
+    if(!implicit_integration_data_initialized) {
+        implicit_integration_data_initialized = true;
+
+        int nb_particules = body_->particles.size();
+        M = MatrixXf(3 * nb_particules, 3 * nb_particules);
+        M = 0.0 * M;
+        for (int i(0); i < 3 * nb_particules; ++i) {
+            M(i, i) = cloth_particle_mass;
+        }
+
+        this->x = VectorXf(3 * nb_particules);
+        this->x = 0.f * this->x;
+        for(uint i = 0; i < body_->particles.size(); ++i) {
+            float* data = body_->particles[i].position.data();
+            this->x[i*3] = data[0];
+            this->x[i*3 + 1] = data[1];
+            this->x[i*3 + 2] = data[2];
+        }
+
+        this->v = VectorXf(3 * nb_particules);
+        this->v = 0.0 * v;
+        this->f = VectorXf(3 * nb_particules);
+        this->f = 0.0 * f;
     }
 }

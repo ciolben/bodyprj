@@ -53,8 +53,8 @@ Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
 
     cloth_simulation = false;
 
-    cloth_width = 10;
-    cloth_height = 10;
+    cloth_width = 10;//60; 10;
+    cloth_height = 10;//60; 10;
 
     cloth_show_particles = false;
 }
@@ -682,7 +682,8 @@ void Mass_spring_viewer::time_integration(float dt)
             //Only for the cloth
             if (cloth_simulation) {
                 compute_forces();
-                cloth.updateForces();
+                cloth.implicit_initialization();
+                cloth.updateData();
                 cloth.integrateImplicit(dt, spring_stiffness_);
             }
 

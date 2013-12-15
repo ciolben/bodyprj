@@ -12,7 +12,8 @@ public:
     Cloth(){}
 
     void integrateImplicit(const float &dt, const float &ks);
-    void updateForces();
+    void updateData();
+    void implicit_initialization();
 
 private:
     Mass_spring_system *body_;
@@ -22,6 +23,8 @@ private:
     VectorXf x;
     VectorXf v;
     VectorXf f;
+
+    bool implicit_integration_data_initialized;
 };
 
 #endif // CLOTH_H
