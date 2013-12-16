@@ -152,6 +152,8 @@ private: // parameter settings
 
     float m_oldDepth;
 
+    float gravitation_coeff;
+
 private: // simulation data
     /// the mass spring system to be simulated
     Mass_spring_system body_;

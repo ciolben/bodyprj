@@ -57,6 +57,8 @@ Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
     cloth_height = 10;//60; 10;
 
     cloth_show_particles = false;
+
+    gravitation_coeff = 1.0f;
 }
 
 Mass_spring_viewer::~Mass_spring_viewer()
@@ -155,6 +157,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 1
         case Qt::Key_1:
         {
+            gravitation_coeff = 1.0f;
             cloth_simulation = false;
             body_.clear();
             body_.add_particle( vec2(-0.5, -0.5), vec2(14.0, -2.0), particle_mass_, false );
@@ -166,6 +169,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 5
         case Qt::Key_2:
         {
+            gravitation_coeff = 1.0f;
             cloth_simulation = false;
             body_.clear();
             for (int i=0; i<100; ++i)
@@ -180,6 +184,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 4
         case Qt::Key_3:
         {
+            gravitation_coeff = 1.0f;
             cloth_simulation = false;
             body_.clear();
 
@@ -200,6 +205,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 2
         case Qt::Key_4:
         {
+            gravitation_coeff = 1.0f;
             cloth_simulation = false;
             body_.clear();
 
@@ -220,6 +226,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         // setup problem 3
         case Qt::Key_5:
         {
+            gravitation_coeff = 1.0f;
             cloth_simulation = false;
             body_.clear();
 
@@ -241,7 +248,28 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             break;
         }
         case Qt::Key_6: {
-            cloth = Cloth(cloth_width, cloth_height, 0.7, &body_, 1);
+            gravitation_coeff = 1.0f;
+            cloth_width = 10;
+            cloth_height = 10;
+            cloth = Cloth(cloth_width, cloth_height, 0.7, 0.01f, &body_, 1);
+            cloth_simulation = true;
+
+            break;
+        }
+        case Qt::Key_7: {
+            gravitation_coeff = 1.0f;
+            cloth_width = 10;
+            cloth_height = 10;
+            cloth = Cloth(cloth_width, cloth_height, 0.7, 0.01f, &body_, 2);
+            cloth_simulation = true;
+
+            break;
+        }
+        case Qt::Key_8: {
+            gravitation_coeff = 100.0f;
+            cloth_width = 60;
+            cloth_height = 60;
+            cloth = Cloth(cloth_width, cloth_height, 0.7, 0.001f, &body_, 1);
             cloth_simulation = true;
 
             break;
@@ -803,7 +831,7 @@ Mass_spring_viewer::compute_forces()
         }
 
         for (unsigned int i=0; i<body_.particles.size(); ++i)
-            body_.particles[i].force += gravitation_vector * body_.particles[i].mass;
+            body_.particles[i].force += gravitation_vector * body_.particles[i].mass * gravitation_coeff;
 
         for (unsigned int i=0; i<m_objects.size(); ++i){
             m_objects[i]->force += gravitation_vector * m_objects[i]->mass;

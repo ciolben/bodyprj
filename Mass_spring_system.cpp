@@ -28,6 +28,7 @@ void Mass_spring_system::clear()
     particles.clear();
     springs.clear();
     triangles.clear();
+    triangles_r.clear();
 }
 
 

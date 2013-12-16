@@ -2,11 +2,11 @@
 #include "Eigen/IterativeLinearSolvers"
 #include <QDebug>
 
-Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system *body_, int locked_particle_selection)
+Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, float mass, Mass_spring_system *body_, int locked_particle_selection)
     :body_(body_), M(0)
-    , cloth_particle_mass(0.01f), implicit_integration_data_initialized(false)
+    , cloth_particle_mass(mass), implicit_integration_data_initialized(false)
 {
-    bool breakable = false;
+    bool breakable = true;
 
     double minX = -0.5;
     double minZ = -0.5;
@@ -19,6 +19,7 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
     double stepX = rangeX / grid_width;
     double stepZ = rangeZ / grid_height;
 
+    body_->clear();
     body_->clear();
 
 
@@ -44,7 +45,7 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
             }
             case 2: {
                 body_->add_particle( vec3(x, cloth_y_position, z),
-                                     vec3(), cloth_particle_mass, locked_border(xCounter, zCounter, grid_width, grid_height));
+                                     vec3(), cloth_particle_mass, locked_border(xCounter, zCounter, grid_width));
                 break;
             }
             }
@@ -175,8 +176,8 @@ bool Cloth::locked_line(int j) {
     return j == 0;
 }
 
-bool Cloth::locked_border(int i, int j, int max1, int max2) {
-    return (j == 0 || j == max2 - 1) && (i == 0 || i == max1 - 1);
+bool Cloth::locked_border(int i, int j, int max1) {
+    return (j == 0) && (i == 0 || i == max1 - 1);
 }
 
 void Cloth::integrateImplicit(const float& dt, const float& ks) {
