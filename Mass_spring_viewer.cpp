@@ -53,8 +53,8 @@ Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
 
     cloth_simulation = false;
 
-    cloth_width = 10;//60; 10;
-    cloth_height = 10;//60; 10;
+    cloth_width = 60;//60; 10;
+    cloth_height = 60;//60; 10;
 
     cloth_show_particles = false;
 }

@@ -6,7 +6,7 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
     :body_(body_), M(0)
     , cloth_particle_mass(0.1f), implicit_integration_data_initialized(false)
 {
-    bool breakable = true;
+    bool breakable = false;
 
     double minX = -0.5;
     double minZ = -0.5;
