@@ -8,7 +8,7 @@ class Cloth
 {
 public:
     Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system* body_);
-
+    ~Cloth();
     Cloth(){}
 
     void integrateImplicit(const float &dt, const float &ks);
@@ -19,7 +19,7 @@ private:
     Mass_spring_system *body_;
     float cloth_particle_mass;
 
-    MatrixXf M;
+    SparseMatrix<float>* M;
     VectorXf x;
     VectorXf v;
     VectorXf f;

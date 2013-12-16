@@ -1,10 +1,11 @@
 #include "Cloth.h"
 #include "Eigen/IterativeLinearSolvers"
 #include <QDebug>
+#include <time.h>
 
 Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system *body_)
-    :body_(body_)
-    , cloth_particle_mass(0.1f /*0.001f*/), implicit_integration_data_initialized(false)
+    :body_(body_), M(0)
+    , cloth_particle_mass(0.1f), implicit_integration_data_initialized(false)
 {
     bool breakable = true;
 
@@ -27,7 +28,7 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
     for(double zCounter(0); zCounter < grid_height; ++zCounter) {
         for(double xCounter(0); xCounter < grid_width; ++xCounter) {
             body_->add_particle( vec3(x, cloth_y_position, z),
-                                vec3(), cloth_particle_mass, /*zCounter == 0*/ false);
+                                vec3(), cloth_particle_mass, zCounter == 0);
             x += stepX;
         }
 
@@ -144,14 +145,23 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
     }
 }
 
+Cloth::~Cloth() {
+    if(M != 0) {
+        delete M;
+    }
+}
+
 void Cloth::integrateImplicit(const float& dt, const float& ks) {
     int size = body_->particles.size();
-    MatrixXf K = MatrixXf(3 * size, 3 * size);
-    K = 0.0 * K;
+    SparseMatrix<float> K(3 * size, 3 * size);
     Matrix3f I = Matrix3f::Identity();
 
-    MatrixXf A = MatrixXf(3 * size, 3 * size);
+    SparseMatrix<float> A(3 * size, 3 * size);
     VectorXf b = VectorXf(3 * size);
+
+
+
+    clock_t begin = clock();
 
     for(unsigned int i(0); i<body_->springs.size(); ++i ){
         Spring& spring = body_->springs[i];
@@ -171,26 +181,39 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
 
         for (int k = 0; k < 3; ++k) {
             for (int l = 0; l < 3; ++l) {
-                K(i_id * 3 + k,i_id * 3 + l) += Kii(k, l);
-                K(j_id * 3 + k,j_id * 3 + l) += Kii(k, l);
+                K.coeffRef(i_id * 3 + k,i_id * 3 + l) += Kii(k, l);
+                K.coeffRef(j_id * 3 + k,j_id * 3 + l) += Kii(k, l);
 
-                K(j_id * 3 + k,i_id * 3 + l) -= Kii(k, l);
-                K(i_id * 3 + k,j_id * 3 + l) -= Kii(k, l);
+                K.coeffRef(j_id * 3 + k,i_id * 3 + l) -= Kii(k, l);
+                K.coeffRef(i_id * 3 + k,j_id * 3 + l) -= Kii(k, l);
             }
         }
-
     }
 
+    clock_t end = clock();
+    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    std::cerr << "time 1 " << elapsed_secs << std::endl;
+
+    begin = end;
     //resolve the system
-    A = M - ((dt * dt) * K);
-    b = (M * v) + (dt * f);
+    A = (*M) - ((dt * dt) * K);
+    b = ((*M) * v) + (dt * f);
 
-    //VectorXf v_new = A.ldlt().solve(b);
+    end = clock();
+    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+   std::cerr << "time 2 " << elapsed_secs << std::endl;
 
-    SparseMatrix<float> A_sparse = A.sparseView();
+   begin = end;
+
     ConjugateGradient<SparseMatrix<float> > conjGrad;
-    conjGrad.compute(A_sparse);
+
+    conjGrad.compute(A);
     VectorXf v_new = conjGrad.solve(b);
+
+
+    end = clock();
+    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+   std::cerr << "time 3 " << elapsed_secs << std::endl;
 
 
     for (int i(0); i < size; ++i) {
@@ -200,7 +223,6 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
         if (!p.locked) {
             p.position += dt * vec3(v_new[id * 3], v_new[id * 3 + 1], v_new[id * 3 + 2]);
             p.velocity = vec3(v_new[id * 3], v_new[id * 3 + 1], v_new[id * 3 + 2]);
-    //        qDebug("vel : %f,%f,%f", v[id * 3], v[id * 3 + 1], v[id * 3 + 2]);
         }
     }
 }
@@ -222,13 +244,13 @@ void Cloth::updateData() {
 
 void Cloth::implicit_initialization() {
     if(!implicit_integration_data_initialized) {
+        std::cerr << "ICI" << std::endl;
         implicit_integration_data_initialized = true;
 
         int nb_particules = body_->particles.size();
-        M = MatrixXf(3 * nb_particules, 3 * nb_particules);
-        M = 0.0 * M;
+        M = new SparseMatrix<float>(3 * nb_particules, 3 * nb_particules);
         for (int i(0); i < 3 * nb_particules; ++i) {
-            M(i, i) = cloth_particle_mass;
+            M->insert(i, i) = cloth_particle_mass;
         }
 
         this->x = VectorXf(3 * nb_particules);
