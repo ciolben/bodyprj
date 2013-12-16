@@ -1,7 +1,6 @@
 #include "Cloth.h"
 #include "Eigen/IterativeLinearSolvers"
 #include <QDebug>
-#include <time.h>
 
 Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system *body_)
     :body_(body_), M(0)
@@ -159,10 +158,6 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
     SparseMatrix<float> A(3 * size, 3 * size);
     VectorXf b = VectorXf(3 * size);
 
-
-
-    clock_t begin = clock();
-
     for(unsigned int i(0); i<body_->springs.size(); ++i ){
         Spring& spring = body_->springs[i];
         Particle* p0 = spring.particle0;
@@ -190,31 +185,14 @@ void Cloth::integrateImplicit(const float& dt, const float& ks) {
         }
     }
 
-    clock_t end = clock();
-    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    std::cerr << "time 1 " << elapsed_secs << std::endl;
-
-    begin = end;
     //resolve the system
     A = (*M) - ((dt * dt) * K);
     b = ((*M) * v) + (dt * f);
-
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-   std::cerr << "time 2 " << elapsed_secs << std::endl;
-
-   begin = end;
 
     ConjugateGradient<SparseMatrix<float> > conjGrad;
 
     conjGrad.compute(A);
     VectorXf v_new = conjGrad.solve(b);
-
-
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-   std::cerr << "time 3 " << elapsed_secs << std::endl;
-
 
     for (int i(0); i < size; ++i) {
         Particle& p = body_->particles[i];
@@ -244,7 +222,6 @@ void Cloth::updateData() {
 
 void Cloth::implicit_initialization() {
     if(!implicit_integration_data_initialized) {
-        std::cerr << "ICI" << std::endl;
         implicit_integration_data_initialized = true;
 
         int nb_particules = body_->particles.size();
