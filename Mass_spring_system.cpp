@@ -368,6 +368,22 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
     for (unsigned int i=0; i<springs.size(); ++i)
     {
         if (!springs[i].is_broken) {
+            float ratioR, ratioG, ratioB;
+            const Spring& spring = springs[i];
+            float ratio = (spring.maximum_length - spring.length()) / (spring.maximum_length - spring.rest_length);
+            ratioR = ratioG = ratioB = 0.f;
+            if (ratio < 1) {
+                ratioR = 1- ratio;
+            } else if (ratio > 1) {
+                ratio = 1.f / ratio;
+                ratioB = 1- ratio;
+            }
+            ratioR *= 7.5f;
+            ratioB *= 7.5f;
+
+            glColor3f(ratioR, ratioG, ratioB);
+            glVertex3fv( springs[i].particle0->position.data() );
+            glVertex3fv( springs[i].particle1->position.data() );
             glVertex3fv( springs[i].particle0->position.data() );
             glVertex3fv( springs[i].particle1->position.data() );
         }
