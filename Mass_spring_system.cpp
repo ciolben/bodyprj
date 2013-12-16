@@ -377,8 +377,8 @@ void Mass_spring_system::draw(float particle_radius, bool show_forces, int selec
                 ratio = 1.f / ratio;
                 ratioB = 1- ratio;
             }
-            ratioR *= 7.5.f;
-            ratioB *= 7.5.f;
+            ratioR *= 7.5f;
+            ratioB *= 7.5f;
 
             glColor3f(ratioR, ratioG, ratioB);
             glVertex3fv( springs[i].particle0->position.data() );
