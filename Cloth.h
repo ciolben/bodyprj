@@ -7,7 +7,7 @@ using namespace Eigen;
 class Cloth
 {
 public:
-    Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system* body_);
+    Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system* body_, int locked_particle_selection);
     ~Cloth();
     Cloth(){}
 
@@ -25,6 +25,9 @@ private:
     VectorXf f;
 
     bool implicit_integration_data_initialized;
+
+    bool locked_line(int j);
+    bool locked_border(int i, int j, int max1, int max2);
 };
 
 #endif // CLOTH_H

@@ -241,7 +241,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             break;
         }
         case Qt::Key_6: {
-            cloth = Cloth(cloth_width, cloth_height, 0.7, &body_);
+            cloth = Cloth(cloth_width, cloth_height, 0.7, &body_, 1);
             cloth_simulation = true;
 
             break;
