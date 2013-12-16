@@ -2,9 +2,9 @@
 #include "Eigen/IterativeLinearSolvers"
 #include <QDebug>
 
-Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system *body_)
+Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, Mass_spring_system *body_, int locked_particle_selection)
     :body_(body_), M(0)
-    , cloth_particle_mass(0.1f), implicit_integration_data_initialized(false)
+    , cloth_particle_mass(0.01f), implicit_integration_data_initialized(false)
 {
     bool breakable = false;
 
@@ -21,13 +21,34 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
 
     body_->clear();
 
+
+
     // add the particles
     double x = minX;
     double z = minZ;
     for(double zCounter(0); zCounter < grid_height; ++zCounter) {
         for(double xCounter(0); xCounter < grid_width; ++xCounter) {
-            body_->add_particle( vec3(x, cloth_y_position, z),
-                                vec3(), cloth_particle_mass, zCounter == 0);
+
+            switch(locked_particle_selection) {
+            case 0:
+            {
+                body_->add_particle( vec3(x, cloth_y_position, z),
+                                     vec3(), cloth_particle_mass, false);
+                break;
+            }
+            case 1:
+            {
+                body_->add_particle( vec3(x, cloth_y_position, z),
+                                     vec3(), cloth_particle_mass, locked_line(zCounter));
+                break;
+            }
+            case 2: {
+                body_->add_particle( vec3(x, cloth_y_position, z),
+                                     vec3(), cloth_particle_mass, locked_border(xCounter, zCounter, grid_width, grid_height));
+                break;
+            }
+            }
+
             x += stepX;
         }
 
@@ -148,6 +169,14 @@ Cloth::~Cloth() {
     if(M != 0) {
         delete M;
     }
+}
+
+bool Cloth::locked_line(int j) {
+    return j == 0;
+}
+
+bool Cloth::locked_border(int i, int j, int max1, int max2) {
+    return (j == 0 || j == max2 - 1) && (i == 0 || i == max1 - 1);
 }
 
 void Cloth::integrateImplicit(const float& dt, const float& ks) {
