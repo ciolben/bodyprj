@@ -92,8 +92,8 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
 
 
     // create the triangle used for the futur rendering
-    for(unsigned int h = 1; h < grid_height - 2; ++h) {
-        for(unsigned int w = 1; w < grid_width - 2; w++) {
+    for(unsigned int h = 0; h < grid_height - 1; ++h) {
+        for(unsigned int w = 0; w < grid_width - 1; w++) {
 
             int currentIndex = w + grid_width * h;
             int neighbor1 = w + 1 + grid_width * h;

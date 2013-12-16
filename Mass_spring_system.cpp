@@ -109,6 +109,180 @@ void Mass_spring_system::compute_normals(int width, int height)
             cr.normal = normalize(normal_av);
         }
     }
+
+
+    for(int h = 1; h < height - 1; ++h) {
+        //                n1
+        //                cr - n2
+        //                n3
+
+        int currentIndex = width * h;
+        int neighbor2 = 1 + width * h;
+        int neighbor1 = width * (h + 1);
+        int neighbor3 = width * (h - 1);
+
+        Particle& cr = particles[currentIndex];
+        const Particle& p2 = particles[neighbor2];
+        const Particle& p1 = particles[neighbor1];
+        const Particle& p3 = particles[neighbor3];
+
+        vec3 crp1 = p1.position - cr.position;
+        vec3 crp2 = p2.position - cr.position;
+        vec3 normal1 = crp1^crp2;
+
+        vec3 crp3 = p3.position - cr.position;
+        vec3 normal2 = crp2^crp3;
+
+        vec3 normal_av = normal1 + normal2;
+
+        cr.normal = normalize(normal_av);
+
+
+        //                n4
+        //           n5 - cr2
+        //                n6
+        currentIndex = width-1 + width * h;
+        int neighbor5 = width - 2 + width * h;
+        int neighbor4 = width-1 + width * (h + 1);
+        int neighbor6 = width-1 + width * (h - 1);
+
+        Particle& cr2 = particles[currentIndex];
+        const Particle& p5 = particles[neighbor5];
+        const Particle& p4 = particles[neighbor4];
+        const Particle& p6 = particles[neighbor6];
+
+        vec3 crp4 = p4.position - cr2.position;
+        vec3 crp5 = p5.position - cr2.position;
+        normal1 = crp5^crp4;
+
+        vec3 crp6 = p6.position - cr2.position;
+        normal2 = crp6^crp5;
+
+        normal_av = normal1 + normal2;
+
+        cr2.normal = normalize(normal_av);
+    }
+
+    for(int w = 1; w < width - 1; ++w) {
+        //           n1 - cr - n3
+        //                n2
+
+
+        int currentIndex = w;
+        int neighbor1 = w - 1;
+        int neighbor2 = w + width;
+        int neighbor3 = w + 1;
+
+        Particle& cr = particles[currentIndex];
+        const Particle& p2 = particles[neighbor2];
+        const Particle& p1 = particles[neighbor1];
+        const Particle& p3 = particles[neighbor3];
+
+        vec3 crp1 = p1.position - cr.position;
+        vec3 crp2 = p2.position - cr.position;
+        vec3 normal1 = crp1^crp2;
+
+        vec3 crp3 = p3.position - cr.position;
+        vec3 normal2 = crp2^crp3;
+
+        vec3 normal_av = normal1 + normal2;
+
+        cr.normal = normalize(normal_av);
+
+
+        //                n5
+        //           n4 - cr2 - n6
+        currentIndex = w + width * (height-1);
+        int neighbor5 = w + width * (height-2);
+        int neighbor4 = w-1 + width * (height-1);
+        int neighbor6 = w+1 + width * (height-1);
+
+        Particle& cr2 = particles[currentIndex];
+        const Particle& p5 = particles[neighbor5];
+        const Particle& p4 = particles[neighbor4];
+        const Particle& p6 = particles[neighbor6];
+
+        vec3 crp4 = p4.position - cr2.position;
+        vec3 crp5 = p5.position - cr2.position;
+        normal1 = crp5^crp4;
+
+        vec3 crp6 = p6.position - cr2.position;
+        normal2 = crp6^crp5;
+
+        normal_av = normal1 + normal2;
+
+        cr2.normal = normalize(normal_av);
+    }
+
+    // the 4 border
+
+    //
+    //           cr - n1 .. n3 - cr2
+    //           n2              n4
+    //           .               .
+    //           .               .
+    //           n5              n7
+    //          cr3 - n6 .. n8 - cr4
+
+    int currentIndex = 0;
+    int neighbor1 = 1;
+    int neighbor2 = width;
+
+    Particle& cr = particles[currentIndex];
+    const Particle& p1 = particles[neighbor1];
+    const Particle& p2 = particles[neighbor2];
+
+    vec3 crp1 = p1.position - cr.position;
+    vec3 crp2 = p2.position - cr.position;
+    vec3 normal = crp2^crp1;
+
+    cr.normal = normalize(normal);
+
+
+    currentIndex = width - 1;
+    int neighbor3 = width - 2;
+    int neighbor4 = width - 1 + width;
+
+    Particle& cr2 = particles[currentIndex];
+    const Particle& p3 = particles[neighbor3];
+    const Particle& p4 = particles[neighbor4];
+
+    vec3 crp3 = p3.position - cr2.position;
+    vec3 crp4 = p4.position - cr2.position;
+    normal = crp3^crp4;
+
+    cr2.normal = normalize(normal);
+
+
+    currentIndex = width * (height - 1);
+    int neighbor5 = width * (height - 2);
+    int neighbor6 = 1 + width * (height - 1);
+
+    Particle& cr3 = particles[currentIndex];
+    const Particle& p5 = particles[neighbor5];
+    const Particle& p6 = particles[neighbor6];
+
+    vec3 crp5 = p5.position - cr3.position;
+    vec3 crp6 = p6.position - cr3.position;
+    normal = crp6^crp5;
+
+    cr3.normal = normalize(normal);
+
+
+    currentIndex = width - 1 + width * (height - 1);
+    int neighbor7 = width - 1 + width * (height - 2);
+    int neighbor8 = width - 2 + width * (height - 1);
+
+    Particle& cr4 = particles[currentIndex];
+    const Particle& p7 = particles[neighbor7];
+    const Particle& p8 = particles[neighbor8];
+
+    vec3 crp7 = p7.position - cr4.position;
+    vec3 crp8 = p8.position - cr4.position;
+    normal = crp7^crp8;
+
+    cr4.normal = normalize(normal);
+
 }
 
 void Mass_spring_system::draw(float particle_radius, bool show_forces, int selected) const

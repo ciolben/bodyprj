@@ -803,7 +803,7 @@ Mass_spring_viewer::compute_forces()
         }
 
         for (unsigned int i=0; i<body_.particles.size(); ++i)
-            body_.particles[i].force += gravitation_vector * particle_mass_;
+            body_.particles[i].force += gravitation_vector * body_.particles[i].mass;
 
         for (unsigned int i=0; i<m_objects.size(); ++i){
             m_objects[i]->force += gravitation_vector * m_objects[i]->mass;
