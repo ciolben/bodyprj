@@ -53,8 +53,8 @@ Mass_spring_viewer::Mass_spring_viewer(const qglviewer::Camera *camera)
 
     cloth_simulation = false;
 
-    cloth_width = 10;//60; 10;
-    cloth_height = 10;//60; 10;
+    cloth_width = 10;//60;
+    cloth_height = 10;//60;
 
     cloth_show_particles = false;
 
@@ -176,6 +176,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         {
             gravitation_coeff = 1.0f;
             cloth_simulation = false;
+            spring_stiffness_    = 1000.0;
             body_.clear();
 
             for (int i=0; i<10; ++i)
@@ -197,6 +198,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         {
             gravitation_coeff = 1.0f;
             cloth_simulation = false;
+            spring_stiffness_    = 1000.0;
             body_.clear();
 
             body_.add_particle( vec2(-0.1, 0.7), vec2(0.0, 0.0), particle_mass_, false );
@@ -217,6 +219,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
         case Qt::Key_5:
         {
             gravitation_coeff = 1.0f;
+            spring_stiffness_    = 1000.0;
             cloth_simulation = false;
             body_.clear();
 
@@ -238,27 +241,33 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
             break;
         }
         case Qt::Key_6: {
+            // Implicit integration scene
             gravitation_coeff = 1.0f;
             cloth_width = 10;
             cloth_height = 10;
+            spring_stiffness_    = 1000.0;
             cloth = Cloth(cloth_width, cloth_height, 0.7, 0.01f, &body_, 1);
             cloth_simulation = true;
 
             break;
         }
         case Qt::Key_7: {
+            // Implicit integration scene
             gravitation_coeff = 1.0f;
             cloth_width = 10;
             cloth_height = 10;
+            spring_stiffness_    = 100.0;
             cloth = Cloth(cloth_width, cloth_height, 0.7, 0.01f, &body_, 2);
             cloth_simulation = true;
 
             break;
         }
         case Qt::Key_8: {
+            // Verlet integration scene
             gravitation_coeff = 100.0f;
             cloth_width = 60;
             cloth_height = 60;
+            spring_stiffness_    = 1000.0;
             cloth = Cloth(cloth_width, cloth_height, 0.7, 0.001f, &body_, 1);
             cloth_simulation = true;
 
@@ -796,8 +805,12 @@ Mass_spring_viewer::compute_forces()
     /** \todo (Part 1) Implement damping force
      \li The damping coefficient is given as member damping_
      */
-    for (unsigned int i=0; i<body_.particles.size(); ++i)
-          body_.particles[i].force += damping_ * -body_.particles[i].velocity;
+    if(integration_ != Implicit) {
+        // no need of damping when we use the implicit integration
+        for (unsigned int i=0; i<body_.particles.size(); ++i) {
+            body_.particles[i].force += damping_ * -body_.particles[i].velocity;
+        }
+    }
 
     for (unsigned int i = 0; i < m_objects.size(); ++i){
         m_objects[i]->force += damping_ * -m_objects[i]->velocity;
@@ -897,8 +910,15 @@ Mass_spring_viewer::compute_forces()
             float   l = spring.length();
             float   L = spring.rest_length;
 
-            vec3 f0 = -d * (spring_stiffness_ * (l-L) +
+            vec3 f0;
+
+            if(integration_ == Implicit) {
+                f0 = -d * spring_stiffness_ * (l-L);
+            } else {
+                f0 = -d * (spring_stiffness_ * (l-L) +
                             spring_damping_   * dot(p0.velocity-p1.velocity, d));
+            }
+
             vec3 f1 = -f0;
 
             p0.force += f0;
