@@ -9,7 +9,7 @@ class Cloth
 public:
     Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, float mass, Mass_spring_system* body_, int locked_particle_selection);
     ~Cloth();
-    Cloth(){}
+    Cloth(){ M = NULL; }
 
     void integrateImplicit(const float &dt, const float &ks);
     void updateData();

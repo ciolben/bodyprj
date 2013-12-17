@@ -3,7 +3,7 @@
 #include <QDebug>
 
 Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_position, float mass, Mass_spring_system *body_, int locked_particle_selection)
-    :body_(body_), M(0)
+    :body_(body_), M(NULL)
     , cloth_particle_mass(mass), implicit_integration_data_initialized(false)
 {
     bool breakable = true;
@@ -21,7 +21,6 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
 
     body_->clear();
     body_->clear();
-
 
 
     // add the particles
@@ -167,7 +166,7 @@ Cloth::Cloth(unsigned int grid_width, unsigned int grid_height, float cloth_y_po
 }
 
 Cloth::~Cloth() {
-    if(M != 0) {
+    if(M != NULL) {
         delete M;
     }
 }
