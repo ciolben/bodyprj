@@ -57,5 +57,6 @@ void Sphere::collisionResponse(Particle &particle, const float& particleRadius)
     if(penDist < 0)
     {
         particle.position -= p;
+        particle.velocity -= dot(dir, particle.velocity) * dir;
     }
 }
