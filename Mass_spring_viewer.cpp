@@ -347,7 +347,7 @@ bool Mass_spring_viewer::keyboard(QKeyEvent* key)
                 removeAllObject3D();
             } else {
                 //for now, just one sphere in the center
-                //if (m_objects.size() == 1) { break; }
+                if (m_objects.size() >= 1) { break; }
                 addObject3D(new Sphere(vec3(0.15f, 0.0f, -0.15f), 0.45f));
             }
             break;
@@ -747,7 +747,7 @@ void Mass_spring_viewer::time_integration(float dt)
         }
     }
     for (uint i = 0; i < objectsToRemove.size(); ++i) {
-        removeObject3D(m_objects[i]);
+        removeObject3D(objectsToRemove[i]);
     }
 
     // impulse-based collision handling
