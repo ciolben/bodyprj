@@ -83,7 +83,6 @@ void Mass_spring_viewer::drawWithNames()
 
 void Mass_spring_viewer::setSelected(int selected)
 {
-    m_oldDepth = 0.9f;
     selected_ = selected;
     std::cerr << selected << std::endl;
 }
@@ -93,29 +92,20 @@ bool Mass_spring_viewer::moveSelectedParticule(const vec2 &mousePos)
     if (selected_ < 0) { return false; }
     Particle& p = body_.particles.at(selected_);
 
-    QPoint pointp(mousePos.data()[0], mousePos.data()[1]);
-    bool found;
+    // take the mouse (screen) coordinates
+    float mx = mousePos.data()[0];
+    float my = mousePos.data()[1];
 
-    float depth;
-    glReadPixels(pointp.x(), camera->screenHeight()-1-pointp.y(), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-    found = depth < 1.0;
-    if (found) {
-        //we fix the depth (smooth transitions)
-        m_oldDepth = depth;
-    }
+    // find the screen coordinates of the particles
+    qglviewer::Vec ps(p.position[0], p.position[1], p.position[2]);
+    ps = camera->projectedCoordinatesOf(ps);
 
-    qglviewer::Vec point(pointp.x(), pointp.y(), m_oldDepth);
-    point = camera->unprojectedCoordinatesOf(point);
+    // now replace the projected x and y value by the mouse coordinates
+    ps.setValue(mx, my, ps[2]);
 
-    p.position = vec3(point[0], point[1], p.position.z);
-
-    //other way to do it (but there is a jump when clicked)
-//    QPoint pixel(mousePos.data()[0], mousePos.data()[1]);
-//    qglviewer::Vec v( ((2.0 * pixel.x() / camera->screenWidth()) - 1.0) /** tan(camera->fieldOfView()/2.0) * camera->aspectRatio()*/,
-//       ((2.0 * (camera->screenHeight()-pixel.y()) / camera->screenHeight()) - 1.0) /** tan(camera->fieldOfView()/2.0)*/,
-//       -1.0 );
-//    vec3 projPos(v[0], v[1], p.position.z);
-//    p.position = projPos;
+    // project back the particle into the world coordinate
+    qglviewer::Vec point = camera->unprojectedCoordinatesOf(ps);
+    p.position = vec3(point[0], point[1], point[2]);
 
     return true;
 }

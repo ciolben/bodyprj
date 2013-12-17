@@ -150,8 +150,6 @@ private: // parameter settings
 
     bool cloth_show_particles;
 
-    float m_oldDepth;
-
     float gravitation_coeff;
 
 private: // simulation data
